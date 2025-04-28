@@ -7,17 +7,38 @@ struct Room: Identifiable, Codable {
     var width: Float  // in centimeters
     var length: Float // in centimeters
     var createdAt: Date
+    var position: RoomPosition?
     
-    init(id: UUID = UUID(), name: String, width: Float = 0, length: Float = 0) {
+    init(id: UUID = UUID(), name: String, width: Float = 0, length: Float = 0, position: RoomPosition? = nil) {
         self.id = id
         self.name = name
         self.width = width
         self.length = length
         self.createdAt = Date()
+        self.position = position
     }
     
     var area: Float {
         return width * length / 10000 // convert to square meters
+    }
+}
+
+struct RoomPosition: Codable, Equatable {
+    var x: Double
+    var y: Double
+    
+    init(x: Double, y: Double) {
+        self.x = x
+        self.y = y
+    }
+    
+    init(point: CGPoint) {
+        self.x = Double(point.x)
+        self.y = Double(point.y)
+    }
+    
+    var point: CGPoint {
+        return CGPoint(x: x, y: y)
     }
 }
 

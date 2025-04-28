@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct RoomListView: View {
-    @StateObject private var roomStore = RoomStore()
+    @ObservedObject var roomStore: RoomStore
     @State private var showingAddRoom = false
     @State private var newRoomName = ""
     

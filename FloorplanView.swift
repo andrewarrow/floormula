@@ -7,6 +7,7 @@ struct FloorplanView: View {
     @State private var previousDragValue: CGSize = .zero
     @State private var showingHelp = false
     @State private var snapToGrid = true
+    @State private var showMinimap = true
     
     // Scaling factor to convert room dimensions from cm to points
     private let baseScaleFactor: CGFloat = 0.4
@@ -22,6 +23,9 @@ struct FloorplanView: View {
     // Grid size for snapping
     private let gridSize: CGFloat = 50
     
+    // Scrollview reader to track scrolling position
+    @State private var scrollPosition = CGPoint(x: 1500, y: 1500) // Default to center of 3000x3000 canvas
+    
     var body: some View {
         ZStack {
             ScrollView([.horizontal, .vertical]) {
@@ -29,6 +33,18 @@ struct FloorplanView: View {
                     // Background grid
                     GridBackground(gridSize: gridSize, showGrid: true)
                         .frame(width: canvasWidth, height: canvasHeight)
+                    
+                    // Room counter
+                    Text("\(roomStore.rooms.count) room(s)")
+                        .font(.caption)
+                        .padding(6)
+                        .background(Color.white.opacity(0.8))
+                        .cornerRadius(12)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12)
+                                .stroke(Color.blue, lineWidth: 1)
+                        )
+                        .position(x: 100, y: 50)
                     
                     // Room boxes
                     ForEach(roomStore.rooms) { room in
@@ -46,17 +62,73 @@ struct FloorplanView: View {
                 }
                 .frame(width: canvasWidth, height: canvasHeight)
                 .scaleEffect(scale)
+                .onChange(of: roomStore.rooms.count) { _ in
+                    // If a new room is added, reset view to see all rooms
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                        viewAllRooms()
+                    }
+                }
             }
             .simultaneousGesture(
                 MagnificationGesture()
                     .onChanged { value in
-                        let newScale = min(max(0.5, scale * value), 2.0)
+                        // Dampen the sensitivity by applying only a fraction of the change
+                        // and using the initial scale as a reference
+                        let dampingFactor: CGFloat = 0.5 // Lower value = less sensitive
+                        let scaleDelta = (value - 1.0) * dampingFactor
+                        let newScale = min(max(0.2, scale * (1.0 + scaleDelta)), 3.0)
                         scale = newScale
                     }
             )
             
+            // Minimap overlay
+            if showMinimap && roomStore.rooms.count > 1 {
+                MinimapView(
+                    rooms: roomStore.rooms,
+                    canvasSize: CGSize(width: canvasWidth, height: canvasHeight),
+                    viewPosition: scrollPosition,
+                    viewScale: scale
+                )
+                .frame(width: 150, height: 150)
+                .background(Color.white.opacity(0.8))
+                .cornerRadius(8)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8)
+                        .stroke(Color.gray, lineWidth: 1)
+                )
+                .shadow(radius: 3)
+                .position(x: UIScreen.main.bounds.width - 85, y: 100)
+            }
+            
             // Controls panel
             VStack {
+                // Top control buttons
+                HStack {
+                    Spacer()
+                    
+                    Button(action: { 
+                        showMinimap.toggle()
+                    }) {
+                        Image(systemName: showMinimap ? "map.fill" : "map")
+                            .padding(8)
+                            .background(Color.white.opacity(0.9))
+                            .cornerRadius(8)
+                            .shadow(radius: 2)
+                    }
+                    
+                    Button(action: { 
+                        viewAllRooms()
+                    }) {
+                        Image(systemName: "arrow.up.left.and.arrow.down.right")
+                            .padding(8)
+                            .background(Color.white.opacity(0.9))
+                            .cornerRadius(8)
+                            .shadow(radius: 2)
+                    }
+                }
+                .padding(.trailing)
+                .padding(.top, 8)
+                
                 Spacer()
                 
                 HStack {
@@ -85,7 +157,9 @@ struct FloorplanView: View {
                     // Zoom controls
                     HStack(spacing: 12) {
                         Button(action: {
-                            scale = max(scale - 0.1, 0.5)
+                            // Zoom out by 10% of current scale for smoother transition
+                            let zoomFactor: CGFloat = 0.9 // 10% reduction
+                            scale = max(scale * zoomFactor, 0.2)
                         }) {
                             Image(systemName: "minus.circle.fill")
                                 .font(.system(size: 24))
@@ -99,7 +173,9 @@ struct FloorplanView: View {
                             .frame(width: 40)
                         
                         Button(action: {
-                            scale = min(scale + 0.1, 2.0)
+                            // Zoom in by 10% of current scale for smoother transition
+                            let zoomFactor: CGFloat = 1.1 // 10% increase
+                            scale = min(scale * zoomFactor, 3.0)
                         }) {
                             Image(systemName: "plus.circle.fill")
                                 .font(.system(size: 24))
@@ -120,13 +196,78 @@ struct FloorplanView: View {
             .alert(isPresented: $showingHelp) {
                 Alert(
                     title: Text("Floorplan Help"),
-                    message: Text("• Drag rooms to position them on the floorplan\n• Use pinch gesture or +/- buttons to zoom\n• Toggle 'Snap to Grid' for precise positioning\n• Tap and hold to see room details"),
+                    message: Text("• Drag rooms to position them on the floorplan\n• Use pinch gesture or +/- buttons to zoom\n• Tap 'View All' button to see all rooms\n• Use minimap to see your current position\n• Toggle 'Snap to Grid' for precise positioning\n• Tap and hold a room to see details"),
                     dismissButton: .default(Text("Got it!"))
                 )
             }
         }
         .navigationTitle("Floorplan")
         .background(Color(.systemGray6))
+        .onAppear {
+            // Auto-view all rooms when the floorplan is opened
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                viewAllRooms()
+            }
+        }
+    }
+    
+    // Function to view all rooms
+    private func viewAllRooms() {
+        guard !roomStore.rooms.isEmpty else { return }
+        
+        // Find bounds of all rooms
+        var minX: CGFloat = .infinity
+        var maxX: CGFloat = -.infinity
+        var minY: CGFloat = .infinity
+        var maxY: CGFloat = -.infinity
+        
+        for room in roomStore.rooms {
+            let position = room.position?.point ?? CGPoint(
+                x: CGFloat(room.id.hashValue % 800) + 200,
+                y: CGFloat(room.id.hashValue % 600) + 200
+            )
+            
+            // Room dimensions in points
+            let width = max(CGFloat(room.width) * scaleFactor, 40)
+            let height = max(CGFloat(room.length) * scaleFactor, 40)
+            
+            // Update bounds
+            minX = min(minX, position.x - width/2)
+            maxX = max(maxX, position.x + width/2)
+            minY = min(minY, position.y - height/2)
+            maxY = max(maxY, position.y + height/2)
+        }
+        
+        // Add padding
+        let padding: CGFloat = 100
+        minX -= padding
+        maxX += padding
+        minY -= padding
+        maxY += padding
+        
+        // Calculate required scale
+        let contentWidth = maxX - minX
+        let contentHeight = maxY - minY
+        
+        let screenWidth = UIScreen.main.bounds.width
+        let screenHeight = UIScreen.main.bounds.height - 200 // Account for nav bars and controls
+        
+        let horizontalScale = screenWidth / contentWidth
+        let verticalScale = screenHeight / contentHeight
+        
+        // Use the smaller scale to ensure everything fits
+        var newScale = min(horizontalScale, verticalScale)
+        
+        // Apply scale limits
+        newScale = min(max(newScale, 0.2), 3.0)
+        scale = newScale
+        
+        // Calculate center of all rooms
+        let centerX = (minX + maxX) / 2
+        let centerY = (minY + maxY) / 2
+        
+        // Update scroll position to center view on all rooms
+        scrollPosition = CGPoint(x: centerX, y: centerY)
     }
     
     private func snapPositionToGrid(_ position: CGPoint) -> CGPoint {
@@ -144,6 +285,56 @@ struct FloorplanView: View {
             
             // Update in store
             roomStore.updateRoom(updatedRoom)
+        }
+    }
+}
+
+// Minimap view to help with navigation
+struct MinimapView: View {
+    let rooms: [Room]
+    let canvasSize: CGSize
+    let viewPosition: CGPoint
+    let viewScale: CGFloat
+    
+    // Scale factor for minimap
+    private let minimapScale: CGFloat = 0.05
+    
+    var body: some View {
+        ZStack {
+            // Background
+            Color(.systemGray6)
+                .opacity(0.7)
+            
+            // Room representations
+            ForEach(rooms) { room in
+                let position = room.position?.point ?? CGPoint(
+                    x: CGFloat(room.id.hashValue % 800) + 200,
+                    y: CGFloat(room.id.hashValue % 600) + 200
+                )
+                
+                // Scale position to minimap
+                let scaledPosition = CGPoint(
+                    x: position.x * minimapScale,
+                    y: position.y * minimapScale
+                )
+                
+                Rectangle()
+                    .fill(Color.blue.opacity(0.7))
+                    .frame(width: 8, height: 8)
+                    .position(scaledPosition)
+            }
+            
+            // Current viewport representation
+            let viewportWidth = UIScreen.main.bounds.width / viewScale
+            let viewportHeight = UIScreen.main.bounds.height / viewScale
+            
+            Rectangle()
+                .stroke(Color.red, lineWidth: 2)
+                .frame(
+                    width: viewportWidth * minimapScale,
+                    height: viewportHeight * minimapScale
+                )
+                .position(x: viewPosition.x * minimapScale, y: viewPosition.y * minimapScale)
         }
     }
 }

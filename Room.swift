@@ -49,12 +49,14 @@ class RoomStore: ObservableObject {
     
     init() {
         loadRooms()
+        validateRooms()
     }
     
     func saveRooms() {
         do {
             let data = try JSONEncoder().encode(rooms)
             try data.write(to: savePath, options: [.atomic])
+            print("Saved \(rooms.count) rooms successfully")
         } catch {
             print("Error saving rooms: \(error)")
         }
@@ -64,6 +66,7 @@ class RoomStore: ObservableObject {
         do {
             if let data = try? Data(contentsOf: savePath) {
                 rooms = try JSONDecoder().decode([Room].self, from: data)
+                print("Loaded \(rooms.count) rooms successfully")
             }
         } catch {
             print("Error loading rooms: \(error)")
@@ -71,9 +74,53 @@ class RoomStore: ObservableObject {
         }
     }
     
-    func addRoom(room: Room) {
-        rooms.append(room)
+    // Validate rooms to ensure all are correctly configured
+    func validateRooms() {
+        // Filter out any rooms with invalid positions
+        let validRooms = rooms.filter { room in
+            if let position = room.position {
+                return !position.x.isNaN && !position.y.isNaN
+            }
+            return true
+        }
+        
+        if validRooms.count != rooms.count {
+            print("Removed \(rooms.count - validRooms.count) invalid rooms")
+            rooms = validRooms
+            saveRooms()
+        }
+        
+        // Ensure all rooms have positions
+        for (index, room) in rooms.enumerated() where room.position == nil {
+            // Assign a default position using hash as a deterministic starting point
+            var updatedRoom = room
+            updatedRoom.position = RoomPosition(
+                x: Double(room.id.hashValue % 800) + 200,
+                y: Double(room.id.hashValue % 600) + 200
+            )
+            rooms[index] = updatedRoom
+            print("Assigned default position to room: \(room.name)")
+        }
+        
+        // Save any changes made during validation
         saveRooms()
+    }
+    
+    func addRoom(room: Room) {
+        // Create a room with position if it doesn't have one
+        var newRoom = room
+        if newRoom.position == nil {
+            newRoom.position = RoomPosition(
+                x: Double(room.id.hashValue % 800) + 200,
+                y: Double(room.id.hashValue % 600) + 200
+            )
+        }
+        
+        DispatchQueue.main.async {
+            self.rooms.append(newRoom)
+            self.saveRooms()
+            print("Added new room: \(newRoom.name), total: \(self.rooms.count)")
+        }
     }
     
     func deleteRoom(at indexSet: IndexSet) {

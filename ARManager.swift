@@ -43,6 +43,10 @@ class ARManager: NSObject, ObservableObject {
         arView.session.delegate = self
         arView.automaticallyConfigureSession = false
         
+        // Explicitly set up view modes to avoid passthrough material warnings
+        arView.renderOptions = [.disablePersonOcclusion, .disableDepthOfField, .disableAREnvironmentLighting]
+        arView.environment.sceneUnderstanding.options = []
+        
         // Configure debug options to help diagnose tracking issues
         #if DEBUG
         arView.debugOptions = [.showFeaturePoints]

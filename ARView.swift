@@ -61,8 +61,11 @@ struct OldARViewContainer: UIViewRepresentable {
         let view = arManager.arView
         
         // Set rendering options to avoid missing metal resources errors
-        view.renderOptions = [.disablePersonOcclusion, .disableDepthOfField]
+        view.renderOptions = [.disablePersonOcclusion, .disableDepthOfField, .disableAREnvironmentLighting]
         view.environment.sceneUnderstanding.options = []
+        
+        // Enable camera background manually to avoid passthrough material errors
+        view.cameraMode = .ar
         
         return view
     }

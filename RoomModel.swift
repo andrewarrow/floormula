@@ -29,6 +29,14 @@ class RoomModel: ObservableObject {
         updateRoomDimensions()
     }
     
+    // Remove the last wall
+    func removeLastWall() {
+        if !walls.isEmpty {
+            walls.removeLast()
+            updateRoomDimensions()
+        }
+    }
+    
     // Clear all walls
     func clear() {
         walls.removeAll()

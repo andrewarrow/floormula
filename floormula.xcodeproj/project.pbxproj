@@ -17,6 +17,8 @@
 		005BD4FC2DC01DA9002A1029 /* RoomModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 005BD4F92DC01DA9002A1029 /* RoomModel.swift */; };
 		005BD4FD2DC01DA9002A1029 /* RoomScanManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 005BD4FA2DC01DA9002A1029 /* RoomScanManager.swift */; };
 		005BD4FE2DC01DA9002A1029 /* RoomScanView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 005BD4FB2DC01DA9002A1029 /* RoomScanView.swift */; };
+		005BD5012DC03A56002A1029 /* Room.swift in Sources */ = {isa = PBXBuildFile; fileRef = 005BD4FF2DC03A56002A1029 /* Room.swift */; };
+		005BD5022DC03A56002A1029 /* RoomListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 005BD5002DC03A56002A1029 /* RoomListView.swift */; };
 		AA0000000000000000000001 /* floormula.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000011 /* floormula.swift */; };
 		AA0000000000000000000002 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000012 /* ContentView.swift */; };
 /* End PBXBuildFile section */
@@ -32,6 +34,8 @@
 		005BD4F92DC01DA9002A1029 /* RoomModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoomModel.swift; sourceTree = "<group>"; };
 		005BD4FA2DC01DA9002A1029 /* RoomScanManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoomScanManager.swift; sourceTree = "<group>"; };
 		005BD4FB2DC01DA9002A1029 /* RoomScanView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoomScanView.swift; sourceTree = "<group>"; };
+		005BD4FF2DC03A56002A1029 /* Room.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Room.swift; sourceTree = "<group>"; };
+		005BD5002DC03A56002A1029 /* RoomListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoomListView.swift; sourceTree = "<group>"; };
 		AA0000000000000000000010 /* floormula.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = floormula.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		AA0000000000000000000011 /* floormula.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = floormula.swift; sourceTree = "<group>"; };
 		AA0000000000000000000012 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -68,6 +72,8 @@
 		AA0000000000000000000032 /* floormula */ = {
 			isa = PBXGroup;
 			children = (
+				005BD4FF2DC03A56002A1029 /* Room.swift */,
+				005BD5002DC03A56002A1029 /* RoomListView.swift */,
 				005BD4F92DC01DA9002A1029 /* RoomModel.swift */,
 				005BD4FA2DC01DA9002A1029 /* RoomScanManager.swift */,
 				005BD4FB2DC01DA9002A1029 /* RoomScanView.swift */,
@@ -161,6 +167,8 @@
 				005BD4F82DC01C17002A1029 /* LocationManager.swift in Sources */,
 				AA0000000000000000000002 /* ContentView.swift in Sources */,
 				AA0000000000000000000001 /* floormula.swift in Sources */,
+				005BD5012DC03A56002A1029 /* Room.swift in Sources */,
+				005BD5022DC03A56002A1029 /* RoomListView.swift in Sources */,
 				005BD4FC2DC01DA9002A1029 /* RoomModel.swift in Sources */,
 				005BD4FD2DC01DA9002A1029 /* RoomScanManager.swift in Sources */,
 				005BD4FE2DC01DA9002A1029 /* RoomScanView.swift in Sources */,

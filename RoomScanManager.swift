@@ -198,6 +198,37 @@ class RoomScanManager: NSObject, ObservableObject {
         return (position, orientation)
     }
     
+    // Undo last wall only
+    func undoLastWall() {
+        if wallCount > 0 {
+            roomModel.removeLastWall()
+            wallCount -= 1
+            
+            // Clear visualizations and re-add the remaining walls
+            arView.scene.anchors.removeAll()
+            
+            // Re-add visualizations for remaining walls
+            for wall in roomModel.walls {
+                addSphereAnchor(at: wall.startPoint, color: .green)
+                addSphereAnchor(at: wall.endPoint, color: .red)
+                addLineAnchor(from: wall.startPoint, to: wall.endPoint)
+            }
+            
+            // Update state
+            scanMode = wallCount == 0 ? .waiting : .connecting
+            
+            // Update session info
+            if wallCount == 0 {
+                sessionInfo = "Place your phone against one wall and tap 'Measure Wall'"
+            } else {
+                sessionInfo = "Last measurement removed. You can add another or save."
+            }
+            
+            // Feedback
+            playHapticFeedback(intensity: 0.5, sharpness: 0.3)
+        }
+    }
+    
     // Reset everything
     func resetScan() {
         roomModel.clear()

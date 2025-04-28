@@ -1,14 +1,15 @@
 import SwiftUI
 import ARKit
 import RealityKit
-import CoreLocation
 import CoreMotion
 
 @main
 struct floormulaApp: App {
     init() {
-        // Register for any initial app setup
-        print("floormulaApp initializing")
+        print("Room Measurement App initializing")
+        
+        // Pre-warm RealityKit to avoid runtime shader compilation errors
+        let _ = try? RealityKit.Entity()
         
         // Check availability of required features
         if !ARWorldTrackingConfiguration.isSupported {
@@ -23,6 +24,7 @@ struct floormulaApp: App {
     var body: some SwiftUI.Scene {
         WindowGroup {
             ContentView()
+                .preferredColorScheme(.dark)
         }
     }
 }

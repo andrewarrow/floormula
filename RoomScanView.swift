@@ -4,8 +4,7 @@ import RealityKit
 
 struct RoomScanView: View {
     @StateObject private var scanManager = RoomScanManager()
-    @State private var showingResetConfirmation = false
-    @State private var showingTutorial = true
+    @State private var showingHelp = false
     
     var body: some View {
         ZStack {
@@ -14,37 +13,22 @@ struct RoomScanView: View {
                     .edgesIgnoringSafeArea(.all)
                 
                 VStack {
-                    // Status bar at top
-                    statusBar
+                    // Measurement display
+                    measurementDisplay
                     
                     Spacer()
                     
-                    // Scanning prompt
-                    scanPromptView
-                    
-                    Spacer()
-                    
-                    // Controls at bottom
+                    // Bottom controls
                     controlBar
-                }
-                .alert(isPresented: $showingResetConfirmation) {
-                    Alert(
-                        title: Text("Reset Room Scan"),
-                        message: Text("This will delete all walls and start a new scan. Are you sure?"),
-                        primaryButton: .destructive(Text("Reset")) {
-                            scanManager.resetScan()
-                        },
-                        secondaryButton: .cancel()
-                    )
                 }
             } else {
                 // Fallback view when device doesn't support required capabilities
                 unsupportedDeviceView
             }
             
-            // Tutorial overlay
-            if showingTutorial {
-                tutorialOverlay
+            // Help overlay
+            if showingHelp {
+                helpOverlay
             }
         }
         .onAppear {
@@ -55,112 +39,141 @@ struct RoomScanView: View {
         }
     }
     
-    var statusBar: some View {
-        VStack(spacing: 4) {
-            HStack {
-                Text("Walls: \(scanManager.wallCount)")
-                    .bold()
-                
-                Spacer()
-                
-                if !scanManager.trackingState.isEmpty {
-                    Label(scanManager.trackingState, systemImage: "camera.viewfinder")
-                        .font(.footnote)
-                }
-            }
-            
-            // Debug info
-            if !scanManager.sessionInfo.isEmpty {
-                Text(scanManager.sessionInfo)
-                    .font(.footnote)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.vertical, 2)
-                    .background(Color.gray.opacity(0.3))
-                    .cornerRadius(4)
-            }
-        }
-        .padding()
-        .background(Color.black.opacity(0.7))
-        .foregroundColor(.white)
-    }
-    
-    var scanPromptView: some View {
-        VStack(spacing: 10) {
-            Text(scanManager.scanPrompt)
-                .font(.headline)
-                .multilineTextAlignment(.center)
-            
-            if scanManager.scanMode == .scanning {
-                HStack {
-                    Text("Measuring distance:")
-                    Text(String(format: "%.2f m", scanManager.currentWallLength))
-                        .bold()
-                }
-                
-                // Visual indicator for steady positioning
-                ProgressView()
-                    .progressViewStyle(CircularProgressViewStyle(tint: .green))
-                    .scaleEffect(1.5)
-            }
-            
-            if scanManager.scanMode == .completed {
-                VStack(spacing: 6) {
-                    Text("Room area: \(String(format: "%.2f", scanManager.roomModel.roomArea)) m²")
-                        .font(.title2)
-                        .bold()
-                        .foregroundColor(.green)
+    var measurementDisplay: some View {
+        VStack(spacing: 20) {
+            // Width and Length measurements
+            HStack(spacing: 40) {
+                // Width
+                VStack {
+                    Text("WIDTH")
+                        .font(.headline)
+                        .foregroundColor(.white)
                     
-                    Text(scanManager.roomModel.getRoomDimensions())
-                        .font(.body)
+                    Text("\(Int(scanManager.roomModel.getRoomWidth() * 100))")
+                        .font(.system(size: 48, weight: .bold))
+                        .foregroundColor(.white)
+                    
+                    Text("cm")
+                        .font(.headline)
                         .foregroundColor(.white)
                 }
+                .frame(minWidth: 120)
+                .padding(.vertical, 12)
+                .background(Color.blue.opacity(0.7))
+                .cornerRadius(12)
+                
+                // Length
+                VStack {
+                    Text("LENGTH")
+                        .font(.headline)
+                        .foregroundColor(.white)
+                    
+                    Text("\(Int(scanManager.roomModel.getRoomLength() * 100))")
+                        .font(.system(size: 48, weight: .bold))
+                        .foregroundColor(.white)
+                    
+                    Text("cm")
+                        .font(.headline)
+                        .foregroundColor(.white)
+                }
+                .frame(minWidth: 120)
+                .padding(.vertical, 12)
+                .background(Color.green.opacity(0.7))
+                .cornerRadius(12)
+            }
+            .padding()
+            .background(Color.black.opacity(0.5))
+            .cornerRadius(16)
+            .padding(.top, 60)
+            
+            // Status and instructions text
+            if !scanManager.sessionInfo.isEmpty {
+                Text(scanManager.sessionInfo)
+                    .font(.subheadline)
+                    .multilineTextAlignment(.center)
+                    .padding()
+                    .background(Color.black.opacity(0.7))
+                    .foregroundColor(.white)
+                    .cornerRadius(8)
             }
         }
-        .padding()
-        .background(backgroundColorForMode)
-        .cornerRadius(10)
-        .foregroundColor(.white)
         .padding()
     }
     
     var controlBar: some View {
-        HStack {
+        HStack(spacing: 20) {
+            // Reset button
             Button(action: {
-                showingResetConfirmation = true
+                scanManager.resetScan()
             }) {
-                Label("Reset", systemImage: "arrow.clockwise")
-                    .padding()
-                    .background(Color.red.opacity(0.8))
-                    .foregroundColor(.white)
-                    .cornerRadius(8)
+                VStack {
+                    Image(systemName: "arrow.triangle.2.circlepath")
+                        .font(.system(size: 24))
+                    Text("Reset")
+                        .font(.caption)
+                }
+                .frame(width: 60, height: 60)
+                .background(Color.red)
+                .foregroundColor(.white)
+                .cornerRadius(30)
             }
             
-            Spacer()
+            // Main action button
+            Button(action: {
+                if scanManager.scanMode == .waiting || scanManager.scanMode == .connecting {
+                    // Start the measurement process
+                    scanManager.beginWallDetection()
+                } else if scanManager.scanMode == .scanning {
+                    // Complete the measurement
+                    scanManager.endWallDetection()
+                }
+            }) {
+                Text(actionButtonText)
+                    .font(.headline)
+                    .frame(width: 180, height: 60)
+                    .background(actionButtonColor)
+                    .foregroundColor(.white)
+                    .cornerRadius(30)
+            }
             
             // Help button
             Button(action: {
-                showingTutorial = true
+                showingHelp = true
             }) {
-                Label("Help", systemImage: "questionmark.circle")
-                    .padding()
-                    .background(Color.blue.opacity(0.8))
-                    .foregroundColor(.white)
-                    .cornerRadius(8)
+                VStack {
+                    Image(systemName: "questionmark")
+                        .font(.system(size: 24))
+                    Text("Help")
+                        .font(.caption)
+                }
+                .frame(width: 60, height: 60)
+                .background(Color.blue)
+                .foregroundColor(.white)
+                .cornerRadius(30)
             }
         }
-        .padding()
+        .padding(.bottom, 30)
     }
     
-    var backgroundColorForMode: Color {
+    var actionButtonText: String {
         switch scanManager.scanMode {
-        case .waiting:
-            return Color.blue.opacity(0.7)
+        case .waiting, .connecting:
+            return "Measure Wall"
         case .scanning:
-            return Color.green.opacity(0.7)
-        case .connecting:
-            return Color.orange.opacity(0.7)
+            return "Capture Distance"
         case .completed:
-            return Color.purple.opacity(0.7)
+            return "Add Wall"
+        }
+    }
+    
+    var actionButtonColor: Color {
+        switch scanManager.scanMode {
+        case .waiting, .connecting:
+            return .blue
+        case .scanning:
+            return .green
+        case .completed:
+            return .purple
         }
     }
     
@@ -175,20 +188,16 @@ struct RoomScanView: View {
                 .bold()
             
             if !scanManager.isARSupported {
-                Text("This device does not support ARKit with world tracking, which is required for room scanning.")
+                Text("This device does not support ARKit, which is required for room measurements.")
                     .multilineTextAlignment(.center)
                     .padding()
             }
             
             if !scanManager.isMotionAvailable {
-                Text("This device does not have the required motion sensors for room scanning.")
+                Text("This device does not have the required motion sensors.")
                     .multilineTextAlignment(.center)
                     .padding()
             }
-            
-            Text("Please try using a newer device with AR capabilities.")
-                .italic()
-                .padding(.top)
         }
         .padding()
         .background(Color.white)
@@ -197,60 +206,42 @@ struct RoomScanView: View {
         .padding(30)
     }
     
-    var tutorialOverlay: some View {
+    var helpOverlay: some View {
         ZStack {
             Color.black.opacity(0.85)
                 .edgesIgnoringSafeArea(.all)
                 .onTapGesture {
-                    showingTutorial = false
+                    showingHelp = false
                 }
             
-            VStack(spacing: 30) {
+            VStack(spacing: 20) {
                 Text("How to Measure a Room")
                     .font(.title)
                     .bold()
                     .foregroundColor(.white)
                 
-                VStack(alignment: .leading, spacing: 20) {
-                    tutorialStep(number: 1, text: "Hold phone flat against one wall until you see \"FIRST POINT CAPTURED!\"")
-                    tutorialStep(number: 2, text: "A green dot will mark your starting position")
-                    tutorialStep(number: 3, text: "Walk straight across to the opposite wall and hold phone against it")
-                    tutorialStep(number: 4, text: "When you see red dot and blue line, measurement is complete")
-                    tutorialStep(number: 5, text: "Repeat with remaining walls to complete the room (at least 4 walls total)")
+                VStack(alignment: .leading, spacing: 16) {
+                    helpStep(number: 1, text: "Press 'Measure Wall' button")
+                    helpStep(number: 2, text: "Place your phone against the first wall")
+                    helpStep(number: 3, text: "Walk to the opposite wall")
+                    helpStep(number: 4, text: "Place your phone against the second wall")
+                    helpStep(number: 5, text: "Press 'Capture Distance' to measure")
                 }
                 
-                VStack(spacing: 12) {
-                    Text("Visual Indicators:")
-                        .font(.headline)
-                        .foregroundColor(.white)
-                    
-                    HStack(spacing: 20) {
-                        HStack { 
-                            Circle().fill(Color.green).frame(width: 12, height: 12)
-                            Text("First point").foregroundColor(.white)
-                        }
-                        
-                        HStack { 
-                            Circle().fill(Color.red).frame(width: 12, height: 12) 
-                            Text("Second point").foregroundColor(.white)
-                        }
-                        
-                        HStack { 
-                            Rectangle().fill(Color.blue).frame(width: 20, height: 4) 
-                            Text("Measurement").foregroundColor(.white)
-                        }
-                    }
-                    .font(.footnote)
-                }
+                Text("Tip: For best results, keep your phone flat against the walls and move in a straight line between measurements.")
+                    .font(.callout)
+                    .foregroundColor(.yellow)
+                    .multilineTextAlignment(.center)
+                    .padding()
                 
                 Button(action: {
-                    showingTutorial = false
+                    showingHelp = false
                 }) {
-                    Text("Start Measuring")
+                    Text("Got It")
                         .font(.headline)
                         .foregroundColor(.white)
                         .padding()
-                        .frame(minWidth: 200)
+                        .frame(width: 200)
                         .background(Color.blue)
                         .cornerRadius(10)
                 }
@@ -263,19 +254,19 @@ struct RoomScanView: View {
         }
     }
     
-    func tutorialStep(number: Int, text: String) -> some View {
+    func helpStep(number: Int, text: String) -> some View {
         HStack(alignment: .top) {
             Text("\(number)")
                 .font(.title2)
                 .bold()
-                .frame(width: 36, height: 36)
+                .frame(width: 30, height: 30)
                 .background(Color.blue)
                 .foregroundColor(.white)
                 .clipShape(Circle())
             
             Text(text)
                 .foregroundColor(.white)
-                .fixedSize(horizontal: false, vertical: true)
+                .font(.headline)
             
             Spacer()
         }
@@ -286,10 +277,19 @@ struct ARViewContainer: UIViewRepresentable {
     var scanManager: RoomScanManager
     
     func makeUIView(context: Context) -> ARView {
-        return scanManager.arView
+        let view = scanManager.arView
+        
+        // Set rendering options for better performance
+        view.renderOptions = [.disablePersonOcclusion, .disableDepthOfField, .disableMotionBlur]
+        view.environment.sceneUnderstanding.options = []
+        
+        // Enable feature points visualization to help with tracking
+        view.debugOptions = [.showFeaturePoints]
+        
+        return view
     }
     
     func updateUIView(_ uiView: ARView, context: Context) {
-        // Nothing to update
+        // Nothing to update here
     }
 }

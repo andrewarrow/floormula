@@ -57,8 +57,17 @@ struct OldARViewContainer: UIViewRepresentable {
     var arManager: ARManager
     
     func makeUIView(context: Context) -> ARView {
-        return arManager.arView
+        // Configure additional view settings
+        let view = arManager.arView
+        
+        // Set rendering options to avoid missing metal resources errors
+        view.renderOptions = [.disablePersonOcclusion, .disableDepthOfField]
+        view.environment.sceneUnderstanding.options = []
+        
+        return view
     }
     
-    func updateUIView(_ uiView: ARView, context: Context) {}
+    func updateUIView(_ uiView: ARView, context: Context) {
+        // No updates needed here
+    }
 }

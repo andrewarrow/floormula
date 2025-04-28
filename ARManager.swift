@@ -17,15 +17,53 @@ class ARManager: NSObject, ObservableObject {
     }
     
     func setupARSession() {
+        print("DEBUG: Setting up AR session with enhanced debugging")
+        
         let configuration = ARWorldTrackingConfiguration()
         configuration.planeDetection = [.horizontal, .vertical]
-        configuration.environmentTexturing = .automatic
+        
+        // Disable environment texturing to reduce flickering and resource usage
+        configuration.environmentTexturing = .none
+        
+        // Reset tracking when restarting session to fix initialization issues
+        configuration.isAutoFocusEnabled = true
+        configuration.worldAlignment = .gravity
+        
+        // If available on the device, enable more stable tracking features
+        if ARWorldTrackingConfiguration.supportsFrameSemantics(.personSegmentationWithDepth) {
+            print("DEBUG: Device supports person segmentation - disabling to improve performance")
+            // Don't enable these features as they can cause resource issues
+        }
+        
+        if ARWorldTrackingConfiguration.supportsSceneReconstruction(.mesh) {
+            print("DEBUG: Device supports scene reconstruction - disabling to improve performance")
+            // Don't enable these features as they can cause resource issues
+        }
         
         arView.session.delegate = self
         arView.automaticallyConfigureSession = false
-        arView.session.run(configuration)
+        
+        // Configure debug options to help diagnose tracking issues
+        #if DEBUG
+        arView.debugOptions = [.showFeaturePoints]
+        print("DEBUG: Enabled feature points visualization for debugging")
+        #endif
+        
+        // Reset tracking state entirely to fix initialization
+        print("DEBUG: Resetting AR tracking state")
+        arView.session.run(configuration, options: [.resetTracking, .removeExistingAnchors])
+        
+        // Log camera settings to help debug tracking quality
+        if let camera = arView.session.currentFrame?.camera {
+            print("DEBUG: Camera intrinsics: \(camera.intrinsics)")
+            print("DEBUG: Camera transform: \(camera.transform)")
+            print("DEBUG: Initial tracking state: \(String(describing: camera.trackingState))")
+        } else {
+            print("DEBUG: No camera frame available yet")
+        }
         
         isSessionRunning = true
+        print("DEBUG: AR session started")
     }
     
     func stopARSession() {

@@ -56,15 +56,27 @@ struct RoomScanView: View {
     }
     
     var statusBar: some View {
-        HStack {
-            Text("Walls: \(scanManager.wallCount)")
-                .bold()
+        VStack(spacing: 4) {
+            HStack {
+                Text("Walls: \(scanManager.wallCount)")
+                    .bold()
+                
+                Spacer()
+                
+                if !scanManager.trackingState.isEmpty {
+                    Label(scanManager.trackingState, systemImage: "camera.viewfinder")
+                        .font(.footnote)
+                }
+            }
             
-            Spacer()
-            
-            if !scanManager.trackingState.isEmpty {
-                Label(scanManager.trackingState, systemImage: "camera.viewfinder")
+            // Debug info
+            if !scanManager.sessionInfo.isEmpty {
+                Text(scanManager.sessionInfo)
                     .font(.footnote)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.vertical, 2)
+                    .background(Color.gray.opacity(0.3))
+                    .cornerRadius(4)
             }
         }
         .padding()
@@ -80,7 +92,7 @@ struct RoomScanView: View {
             
             if scanManager.scanMode == .scanning {
                 HStack {
-                    Text("Current length:")
+                    Text("Measuring distance:")
                     Text(String(format: "%.2f m", scanManager.currentWallLength))
                         .bold()
                 }
@@ -194,22 +206,47 @@ struct RoomScanView: View {
                 }
             
             VStack(spacing: 30) {
-                Text("How to Scan a Room")
+                Text("How to Measure a Room")
                     .font(.title)
                     .bold()
                     .foregroundColor(.white)
                 
                 VStack(alignment: .leading, spacing: 20) {
-                    tutorialStep(number: 1, text: "Place your phone flat against a wall and hold steady for a moment")
-                    tutorialStep(number: 2, text: "Move along the wall while keeping the phone pressed against it")
-                    tutorialStep(number: 3, text: "When you reach the end of the wall, pull the phone away")
-                    tutorialStep(number: 4, text: "Move to the next wall and repeat until you complete the room")
+                    tutorialStep(number: 1, text: "Hold phone flat against one wall until you see \"FIRST POINT CAPTURED!\"")
+                    tutorialStep(number: 2, text: "A green dot will mark your starting position")
+                    tutorialStep(number: 3, text: "Walk straight across to the opposite wall and hold phone against it")
+                    tutorialStep(number: 4, text: "When you see red dot and blue line, measurement is complete")
+                    tutorialStep(number: 5, text: "Repeat with remaining walls to complete the room (at least 4 walls total)")
+                }
+                
+                VStack(spacing: 12) {
+                    Text("Visual Indicators:")
+                        .font(.headline)
+                        .foregroundColor(.white)
+                    
+                    HStack(spacing: 20) {
+                        HStack { 
+                            Circle().fill(Color.green).frame(width: 12, height: 12)
+                            Text("First point").foregroundColor(.white)
+                        }
+                        
+                        HStack { 
+                            Circle().fill(Color.red).frame(width: 12, height: 12) 
+                            Text("Second point").foregroundColor(.white)
+                        }
+                        
+                        HStack { 
+                            Rectangle().fill(Color.blue).frame(width: 20, height: 4) 
+                            Text("Measurement").foregroundColor(.white)
+                        }
+                    }
+                    .font(.footnote)
                 }
                 
                 Button(action: {
                     showingTutorial = false
                 }) {
-                    Text("Got it!")
+                    Text("Start Measuring")
                         .font(.headline)
                         .foregroundColor(.white)
                         .padding()

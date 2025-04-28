@@ -17,7 +17,7 @@ class RoomScanManager: NSObject, ObservableObject {
     @Published var sessionInfo = ""
     @Published var trackingState: String = "Initializing"
     @Published var scanMode: ScanMode = .waiting
-    @Published var scanPrompt: String = "Place phone flat against a wall to begin scanning"
+    @Published var scanPrompt: String = "Place phone flat against a wall to begin measuring"
     @Published var wallCount: Int = 0
     @Published var currentWallLength: Float = 0.0
     @Published var detectingWall: Bool = false
@@ -36,8 +36,8 @@ class RoomScanManager: NSObject, ObservableObject {
     private var queue = OperationQueue()
     private var hapticEngine: CHHapticEngine?
     
-    private var accelerometerThreshold: Double = 0.05
-    private var steadyDurationThreshold: TimeInterval = 1.0
+    private var accelerometerThreshold: Double = 0.08  // Increased for more tolerance
+    private var steadyDurationThreshold: TimeInterval = 0.8  // Reduced for faster response
     private var steadyStartTime: Date?
     
     override init() {
@@ -153,21 +153,70 @@ class RoomScanManager: NSObject, ObservableObject {
         let isNearlyStationary = abs(accelerationMagnitude - 1.0) < accelerometerThreshold
         
         DispatchQueue.main.async {
+            // Log motion information to help debug positioning issues
+            if self.scanMode == .scanning && self.steadyStartTime == nil {
+                // Show current distance to help guide user
+                if let start = self.currentWallStartPosition, 
+                   let current = self.getCurrentCameraTransform()?.position {
+                    let distance = simd_distance(start, current)
+                    if distance < 0.1 {
+                        self.sessionInfo = "⚠️ You haven't moved far enough. Walk to opposite wall."
+                    } else {
+                        self.sessionInfo = "Distance: \(String(format: "%.2f", distance))m - Now hold phone against opposite wall"
+                    }
+                }
+            }
+            
             if isNearlyStationary {
                 if self.steadyStartTime == nil {
                     self.steadyStartTime = Date()
-                } else if Date().timeIntervalSince(self.steadyStartTime!) >= self.steadyDurationThreshold {
                     if self.scanMode == .waiting {
-                        // Phone has been held steady against a wall for required duration
-                        self.beginWallDetection()
+                        self.sessionInfo = "Holding steady on FIRST wall... keep still"
+                    } else if self.scanMode == .scanning {
+                        self.sessionInfo = "Holding steady on SECOND wall... keep still"
+                        
+                        // Check if we've moved far enough before finalizing
+                        if let start = self.currentWallStartPosition, 
+                           let current = self.getCurrentCameraTransform()?.position {
+                            let distance = simd_distance(start, current)
+                            if distance < 0.1 {
+                                self.sessionInfo = "⚠️ TOO CLOSE to starting point! Move to opposite wall first."
+                                self.steadyStartTime = nil  // Reset timer - don't allow this measurement
+                                return
+                            }
+                        }
+                    }
+                } else {
+                    let steadyDuration = Date().timeIntervalSince(self.steadyStartTime!)
+                    let remainingTime = max(0, self.steadyDurationThreshold - steadyDuration)
+                    
+                    if self.scanMode == .waiting {
+                        self.sessionInfo = String(format: "Keep holding against FIRST wall: %.1f seconds", remainingTime)
+                    } else {
+                        self.sessionInfo = String(format: "Keep holding against SECOND wall: %.1f seconds", remainingTime)
+                    }
+                    
+                    if steadyDuration >= self.steadyDurationThreshold {
+                        if self.scanMode == .waiting {
+                            // Phone has been held steady against first wall for required duration
+                            self.sessionInfo = "First wall position captured!"
+                            self.beginWallDetection()
+                        } else if self.scanMode == .scanning {
+                            // Phone has been held steady against second wall
+                            self.sessionInfo = "Second wall position captured!"
+                            self.endWallDetection()
+                        }
                     }
                 }
             } else {
-                self.steadyStartTime = nil
-                if self.scanMode == .scanning {
-                    // Phone moved from wall
-                    self.endWallDetection()
+                if self.steadyStartTime != nil {
+                    if self.scanMode == .waiting {
+                        self.sessionInfo = "Movement detected. Hold phone still against FIRST wall."
+                    } else {
+                        self.sessionInfo = "Movement detected. Hold phone still against SECOND wall."
+                    }
                 }
+                self.steadyStartTime = nil
             }
         }
     }
@@ -195,7 +244,7 @@ class RoomScanManager: NSObject, ObservableObject {
         guard let cameraTransform = getCurrentCameraTransform() else { return }
         
         scanMode = .scanning
-        scanPrompt = "Hold phone against wall and move along its length"
+        scanPrompt = "FIRST POINT CAPTURED! Now move to opposite wall and hold phone against it"
         detectingWall = true
         currentWallStartPosition = cameraTransform.position
         
@@ -204,6 +253,16 @@ class RoomScanManager: NSObject, ObservableObject {
         
         // Visualize the start point
         addSphereAnchor(at: cameraTransform.position, color: .green)
+        
+        sessionInfo = "Green dot = starting point. Now walk to opposite wall."
+        print("DEBUG: First point captured at position \(cameraTransform.position)")
+        
+        // Force update the current wall length to zero to start fresh
+        currentWallLength = 0.0
+        
+        // Add additional debug info about expected end behavior
+        print("DEBUG: AR tracking quality: \(arView.session.currentFrame?.camera.trackingState ?? .notAvailable)")
+        print("DEBUG: Waiting for user to move phone to second position...")
     }
     
     private func endWallDetection() {
@@ -211,14 +270,21 @@ class RoomScanManager: NSObject, ObservableObject {
               let currentCameraPosition = getCurrentCameraTransform()?.position,
               let currentWallNormal = currentWallNormal else {
             scanMode = .waiting
-            scanPrompt = "Place phone flat against a wall to begin scanning"
+            scanPrompt = "Place phone flat against a wall to begin measuring"
+            sessionInfo = "Error: Missing position data. Try again."
             detectingWall = false
             return
         }
         
-        // Only add walls with meaningful length
+        // Calculate the wall length (distance between the two points)
         let distance = simd_distance(currentWallStartPosition, currentCameraPosition)
-        if distance > 0.3 { // Minimum 30cm to be considered a wall
+        
+        // Debug starting and ending positions to help diagnose distance issues
+        print("DEBUG: Starting position = \(currentWallStartPosition)")
+        print("DEBUG: Ending position = \(currentCameraPosition)")
+        print("DEBUG: Measured distance = \(distance)m between points")
+        
+        if distance > 0.1 { // Reduced minimum to 10cm to help with testing
             // Add wall to room model
             roomModel.addWall(
                 startPoint: currentWallStartPosition,
@@ -232,20 +298,47 @@ class RoomScanManager: NSObject, ObservableObject {
             playHapticFeedback(intensity: 1.0, sharpness: 1.0)
             
             wallCount += 1
-            scanPrompt = "Wall \(wallCount) recorded (\(String(format: "%.2f", distance))m)"
+            scanPrompt = "SUCCESS! Measured \(String(format: "%.2f", distance))m"
+            sessionInfo = "Green dot = first point, Red dot = second point, Blue line = measurement"
             
             // Check if room is complete
             if roomModel.isRoomClosed() {
                 scanMode = .completed
                 scanPrompt = "Room scan complete! Area: \(String(format: "%.2f", roomModel.roomArea))m²"
+                sessionInfo = "All walls measured successfully!"
                 playHapticFeedback(intensity: 1.0, sharpness: 0.7)
             } else {
                 scanMode = .connecting
-                scanPrompt = "Move to next wall and place phone against it"
+                scanPrompt = "Ready for next wall. Place phone against another wall"
+                sessionInfo = "Measure another wall. You need at least 4 walls for a complete room."
             }
         } else {
+            // If measurement failed, add debug visualization anyway to help diagnose the issue
+            addSphereAnchor(at: currentCameraPosition, color: .orange) // Orange for failed measurements
+            
+            // Draw a dotted line to show the attempted measurement
+            let anchor = AnchorEntity()
+            anchor.position = SIMD3<Float>((currentWallStartPosition + currentCameraPosition) / 2)
+            
+            // Create a text entity showing the exact distance
+            let textMesh = MeshResource.generateText(
+                "Failed: \(String(format: "%.2f", distance))m",
+                extrusionDepth: 0.01,
+                font: .boldSystemFont(ofSize: 0.05),
+                containerFrame: .zero,
+                alignment: .center,
+                lineBreakMode: .byTruncatingTail
+            )
+            let textEntity = ModelEntity(mesh: textMesh, materials: [SimpleMaterial(color: .red, roughness: 0.5, isMetallic: false)])
+            textEntity.position = SIMD3<Float>(0, 0.1, 0)
+            anchor.addChild(textEntity)
+            arView.scene.addAnchor(anchor)
+            
             scanMode = .waiting
-            scanPrompt = "Wall too short. Try again."
+            scanPrompt = "MEASUREMENT TOO SHORT. Need at least 10cm distance."
+            sessionInfo = "Try again. Current distance: \(String(format: "%.2f", distance*100))cm"
+            
+            print("DEBUG: Failed measurement - distance too short (\(distance)m)")
         }
         
         detectingWall = false
@@ -265,22 +358,44 @@ class RoomScanManager: NSObject, ObservableObject {
         roomModel.clear()
         wallCount = 0
         scanMode = .waiting
-        scanPrompt = "Place phone flat against a wall to begin scanning"
+        scanPrompt = "Place phone flat against a wall to begin measuring"
+        sessionInfo = "RESET: Start by holding phone flat against a wall"
         
         // Remove all anchors from the scene
         arView.scene.anchors.removeAll()
         
         // Light haptic feedback
         playHapticFeedback(intensity: 0.3, sharpness: 0.3)
+        
+        print("DEBUG: Room scan reset, all walls cleared")
     }
     
     private func addSphereAnchor(at position: simd_float3, color: UIColor) {
+        // Create a larger, more visible sphere
         let anchor = AnchorEntity(world: SIMD3<Float>(position))
-        let mesh = MeshResource.generateSphere(radius: 0.05)
+        let mesh = MeshResource.generateSphere(radius: 0.08)  // Bigger radius
         let material = SimpleMaterial(color: color, roughness: 0.3, isMetallic: true)
         let sphere = ModelEntity(mesh: mesh, materials: [material])
+        
+        // Add a label to describe what this point is
+        let text = color == .green ? "Start" : "End"
+        let textMesh = MeshResource.generateText(
+            text,
+            extrusionDepth: 0.01,
+            font: .systemFont(ofSize: 0.05),
+            containerFrame: .zero,
+            alignment: .center,
+            lineBreakMode: .byTruncatingTail
+        )
+        let textMaterial = SimpleMaterial(color: .white, roughness: 0.5, isMetallic: false)
+        let textEntity = ModelEntity(mesh: textMesh, materials: [textMaterial])
+        textEntity.position = SIMD3<Float>(0, 0.12, 0)  // Position text above sphere
+        
         anchor.addChild(sphere)
+        anchor.addChild(textEntity)
         arView.scene.addAnchor(anchor)
+        
+        print("DEBUG: Added \(text) point marker at \(position)")
     }
     
     private func addLineAnchor(from start: simd_float3, to end: simd_float3) {
@@ -293,9 +408,9 @@ class RoomScanManager: NSObject, ObservableObject {
         // Calculate the distance between points
         let distance = simd_distance(start, end)
         
-        // Create a cylinder shape that spans between the points
-        let mesh = MeshResource.generateCylinder(height: distance, radius: 0.02)
-        let material = SimpleMaterial(color: .blue, roughness: 0.5, isMetallic: false)
+        // Create a more visible cylinder shape that spans between the points
+        let mesh = MeshResource.generateCylinder(height: distance, radius: 0.03)  // Thicker line
+        let material = SimpleMaterial(color: .blue, roughness: 0.5, isMetallic: true)  // More visible material
         let cylinder = ModelEntity(mesh: mesh, materials: [material])
         
         // Position and rotate the cylinder
@@ -326,24 +441,39 @@ class RoomScanManager: NSObject, ObservableObject {
         anchor.addChild(cylinder)
         arView.scene.addAnchor(anchor)
         
-        // Add text label for wall length
+        // Add text label for wall length with better visibility
+        let measurementText = "\(String(format: "%.2f", distance))m"
         let textMesh = MeshResource.generateText(
-            "\(String(format: "%.2f", distance))m",
-            extrusionDepth: 0.01,
-            font: .systemFont(ofSize: 0.1),
+            measurementText,
+            extrusionDepth: 0.02,
+            font: .boldSystemFont(ofSize: 0.12),  // Larger, bold text
             containerFrame: .zero,
             alignment: .center,
             lineBreakMode: .byTruncatingTail
         )
-        let textMaterial = SimpleMaterial(color: .white, roughness: 0.5, isMetallic: false)
+        
+        // Brighter text with background for better visibility
+        let textMaterial = SimpleMaterial(color: .yellow, roughness: 0.3, isMetallic: false)
         let textEntity = ModelEntity(mesh: textMesh, materials: [textMaterial])
         
+        // Add a background panel behind the text for better visibility
+        let textBackground = ModelEntity(
+            mesh: MeshResource.generatePlane(width: Float(measurementText.count) * 0.07, height: 0.15),
+            materials: [SimpleMaterial(color: UIColor.darkGray.withAlphaComponent(0.7), roughness: 1.0, isMetallic: false)]
+        )
+        textBackground.position = SIMD3<Float>(0, 0, -0.01)  // Slightly behind the text
+        textEntity.addChild(textBackground)
+        
         // Position the text above the line
-        let textOffset = simd_cross(direction, simd_float3(0, 0, 1)) * 0.1
-        textEntity.position = SIMD3<Float>(0, 0, 0) + textOffset
+        let textOffset = simd_normalize(simd_cross(direction, simd_float3(0, 1, 0))) * 0.15
+        textEntity.position = SIMD3<Float>(0, 0.15, 0) + textOffset  // Positioned higher above the line
+        
+        // Billboard effect - always face the camera
         textEntity.orientation = rotation
         
         anchor.addChild(textEntity)
+        
+        print("DEBUG: Added measurement line of \(distance)m between points")
     }
     
     func stopSession() {
@@ -361,7 +491,19 @@ class RoomScanManager: NSObject, ObservableObject {
             return
         }
         
-        currentWallLength = simd_distance(startPosition, currentPosition)
+        // Calculate and update the current distance between start and current position
+        let newWallLength = simd_distance(startPosition, currentPosition)
+        currentWallLength = newWallLength
+        
+        // Update session info with current measurement
+        if newWallLength > 0.05 {
+            sessionInfo = "Current distance: \(String(format: "%.2f", newWallLength))m"
+            
+            // Periodically log distance to debug console to help track movement
+            if Int(newWallLength * 100) % 20 == 0 { // Log every ~20cm of movement
+                print("DEBUG: Current distance during measurement: \(newWallLength)m")
+            }
+        }
     }
 }
 
@@ -391,6 +533,19 @@ extension RoomScanManager: ARSessionDelegate {
         // Update current wall length when scanning
         if scanMode == .scanning {
             updateCurrentWallLength()
+            
+            // Also periodically check if we've moved far enough to consider successful
+            // This helps users see when they've moved far enough for a valid measurement
+            if let startPosition = currentWallStartPosition,
+               let currentPosition = getCurrentCameraTransform()?.position {
+                let distance = simd_distance(startPosition, currentPosition)
+                
+                // If we've moved more than 1 meter, provide encouraging feedback
+                if distance > 1.0 {
+                    playHapticFeedback(intensity: 0.3, sharpness: 0.3) // Light feedback
+                    sessionInfo = "Good distance! (\(String(format: "%.2f", distance))m) - You can hold steady against wall now"
+                }
+            }
         }
     }
     

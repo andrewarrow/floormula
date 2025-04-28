@@ -2,6 +2,7 @@ import SwiftUI
 import ARKit
 import RealityKit
 import CoreLocation
+import CoreMotion
 
 @main
 struct floormulaApp: App {
@@ -12,6 +13,10 @@ struct floormulaApp: App {
         // Check availability of required features
         if !ARWorldTrackingConfiguration.isSupported {
             print("ARKit with world tracking is not supported on this device")
+        }
+        
+        if !CMMotionManager().isDeviceMotionAvailable {
+            print("Device motion is not available on this device")
         }
     }
     

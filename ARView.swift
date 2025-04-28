@@ -7,7 +7,7 @@ struct ARContentView: View {
     
     var body: some View {
         ZStack {
-            ARViewContainer(arManager: arManager)
+            OldARViewContainer(arManager: arManager)
                 .edgesIgnoringSafeArea(.all)
             
             VStack {
@@ -53,7 +53,7 @@ struct ARContentView: View {
     }
 }
 
-struct ARViewContainer: UIViewRepresentable {
+struct OldARViewContainer: UIViewRepresentable {
     var arManager: ARManager
     
     func makeUIView(context: Context) -> ARView {

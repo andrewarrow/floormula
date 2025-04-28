@@ -14,6 +14,9 @@
 		005BD4F62DC01C17002A1029 /* ARManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 005BD4EF2DC01C17002A1029 /* ARManager.swift */; };
 		005BD4F72DC01C17002A1029 /* ARView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 005BD4F02DC01C17002A1029 /* ARView.swift */; };
 		005BD4F82DC01C17002A1029 /* LocationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 005BD4F12DC01C17002A1029 /* LocationManager.swift */; };
+		005BD4FC2DC01DA9002A1029 /* RoomModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 005BD4F92DC01DA9002A1029 /* RoomModel.swift */; };
+		005BD4FD2DC01DA9002A1029 /* RoomScanManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 005BD4FA2DC01DA9002A1029 /* RoomScanManager.swift */; };
+		005BD4FE2DC01DA9002A1029 /* RoomScanView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 005BD4FB2DC01DA9002A1029 /* RoomScanView.swift */; };
 		AA0000000000000000000001 /* floormula.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000011 /* floormula.swift */; };
 		AA0000000000000000000002 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000012 /* ContentView.swift */; };
 /* End PBXBuildFile section */
@@ -26,6 +29,9 @@
 		005BD4F12DC01C17002A1029 /* LocationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationManager.swift; sourceTree = "<group>"; };
 		005BD4F22DC01C17002A1029 /* LocationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationView.swift; sourceTree = "<group>"; };
 		005BD4F32DC01C17002A1029 /* SensorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SensorView.swift; sourceTree = "<group>"; };
+		005BD4F92DC01DA9002A1029 /* RoomModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoomModel.swift; sourceTree = "<group>"; };
+		005BD4FA2DC01DA9002A1029 /* RoomScanManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoomScanManager.swift; sourceTree = "<group>"; };
+		005BD4FB2DC01DA9002A1029 /* RoomScanView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoomScanView.swift; sourceTree = "<group>"; };
 		AA0000000000000000000010 /* floormula.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = floormula.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		AA0000000000000000000011 /* floormula.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = floormula.swift; sourceTree = "<group>"; };
 		AA0000000000000000000012 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -62,6 +68,9 @@
 		AA0000000000000000000032 /* floormula */ = {
 			isa = PBXGroup;
 			children = (
+				005BD4F92DC01DA9002A1029 /* RoomModel.swift */,
+				005BD4FA2DC01DA9002A1029 /* RoomScanManager.swift */,
+				005BD4FB2DC01DA9002A1029 /* RoomScanView.swift */,
 				005BD4EF2DC01C17002A1029 /* ARManager.swift */,
 				005BD4F02DC01C17002A1029 /* ARView.swift */,
 				005BD4F12DC01C17002A1029 /* LocationManager.swift */,
@@ -152,6 +161,9 @@
 				005BD4F82DC01C17002A1029 /* LocationManager.swift in Sources */,
 				AA0000000000000000000002 /* ContentView.swift in Sources */,
 				AA0000000000000000000001 /* floormula.swift in Sources */,
+				005BD4FC2DC01DA9002A1029 /* RoomModel.swift in Sources */,
+				005BD4FD2DC01DA9002A1029 /* RoomScanManager.swift in Sources */,
+				005BD4FE2DC01DA9002A1029 /* RoomScanView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -282,7 +294,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 755R3VBZ84;
 				INFOPLIST_FILE = "$(SRCROOT)/Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -302,7 +314,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 755R3VBZ84;
 				INFOPLIST_FILE = "$(SRCROOT)/Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",

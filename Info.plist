@@ -46,5 +46,9 @@
 	</array>
 	<key>NSMotionUsageDescription</key>
 	<string>This app needs access to device motion data to display accelerometer, gyroscope, and magnetometer readings.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>This app needs camera access to enable augmented reality features.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>This app needs access to your location to provide positioning information.</string>
 </dict>
 </plist>

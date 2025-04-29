@@ -16,8 +16,8 @@ struct FloorplanView: View {
     }
     
     // Canvas size for scrolling
-    private let canvasWidth: CGFloat = 3000
-    private let canvasHeight: CGFloat = 3000
+    private let canvasWidth: CGFloat = 900
+    private let canvasHeight: CGFloat = 900
     
     // Grid size for snapping
     private let gridSize: CGFloat = 50

@@ -3,7 +3,9 @@ import SwiftUI
 struct RoomListView: View {
     @ObservedObject var roomStore: RoomStore
     @State private var showingAddRoom = false
+    @State private var showingExportSheet = false
     @State private var newRoomName = ""
+    @State private var exportURL: URL?
     
     var body: some View {
         NavigationView {
@@ -18,21 +20,71 @@ struct RoomListView: View {
             .navigationTitle("Rooms")
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(action: {
-                        showingAddRoom = true
-                    }) {
-                        Image(systemName: "plus")
+                    HStack {
+                        Button(action: {
+                            exportRoomsData()
+                        }) {
+                            Image(systemName: "square.and.arrow.up")
+                        }
+                        
+                        Button(action: {
+                            showingAddRoom = true
+                        }) {
+                            Image(systemName: "plus")
+                        }
                     }
                 }
             }
             .sheet(isPresented: $showingAddRoom) {
                 AddRoomView(roomStore: roomStore, isPresented: $showingAddRoom)
             }
+            .sheet(isPresented: $showingExportSheet) {
+                if let exportURL = exportURL {
+                    ActivityViewController(activityItems: [exportURL])
+                }
+            }
         }
     }
     
     func deleteRooms(at offsets: IndexSet) {
         roomStore.deleteRoom(at: offsets)
+    }
+    
+    func exportRoomsData() {
+        do {
+            // Create JSON data
+            let jsonEncoder = JSONEncoder()
+            jsonEncoder.outputFormatting = .prettyPrinted
+            let jsonData = try jsonEncoder.encode(roomStore.rooms)
+            
+            // Get Documents directory for better sharing support
+            let documentDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+            let fileURL = documentDirectory.appendingPathComponent("floormula_rooms.json")
+            
+            // Write to the file
+            try jsonData.write(to: fileURL)
+            
+            // Create a shareable text string instead of directly sharing the file
+            let jsonString = String(data: jsonData, encoding: .utf8) ?? "[]"
+            
+            // Set the export URL and show the share sheet
+            exportURL = fileURL
+            
+            // Share the text data directly instead of the file
+            let items: [Any] = [jsonString]
+            let ac = UIActivityViewController(activityItems: items, applicationActivities: nil)
+            
+            // Find the current UIWindow to present the share sheet
+            if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+               let rootVC = windowScene.windows.first?.rootViewController {
+                // Present activity controller
+                DispatchQueue.main.async {
+                    rootVC.present(ac, animated: true)
+                }
+            }
+        } catch {
+            print("Error exporting rooms: \(error)")
+        }
     }
 }
 

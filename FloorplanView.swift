@@ -80,26 +80,44 @@ struct FloorplanView: View {
         let width = CGFloat(room.width) * scaleFactor
         let length = CGFloat(room.length) * scaleFactor
         
-        return Rectangle()
-            .fill(selectedRoom?.id == room.id ? Color.blue.opacity(0.3) : Color.blue.opacity(0.1))
-            .frame(width: max(width, minRoomSize), height: max(length, minRoomSize))
-            .overlay(
-                Rectangle()
-                    .stroke(Color.blue, lineWidth: 2)
-            )
-            .overlay(
-                Text(room.name)
-                    .font(.caption)
-                    .foregroundColor(.primary)
-                    .padding(5)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.5)
-                    .frame(maxWidth: max(width, minRoomSize) - 10)
-            )
-            .position(position)
-            .onTapGesture {
+        // Get dimensions for the actual room rectangle (before rotation)
+        let roomWidth = max(width, minRoomSize)
+        let roomHeight = max(length, minRoomSize)
+        
+        return ZStack {
+            // Main room shape
+            Rectangle()
+                .fill(selectedRoom?.id == room.id ? Color.blue.opacity(0.3) : Color.blue.opacity(0.1))
+                .frame(width: roomWidth, height: roomHeight)
+                .overlay(
+                    Rectangle()
+                        .stroke(Color.blue, lineWidth: 2)
+                )
+            
+            // Room name
+            Text(room.name)
+                .font(.caption)
+                .foregroundColor(.primary)
+                .padding(5)
+                .lineLimit(1)
+                .minimumScaleFactor(0.5)
+                .frame(maxWidth: roomWidth - 10)
+        }
+        .rotationEffect(.degrees(Double(room.rotation)))
+        .position(position)
+        .onTapGesture {
+            selectedRoom = room
+        }
+        .onLongPressGesture {
+            // Rotate the room 90 degrees on long press
+            if selectedRoom?.id == room.id {
+                var updatedRoom = room
+                updatedRoom.rotation = (room.rotation + 90) % 360
+                roomStore.updateRoom(updatedRoom)
+            } else {
                 selectedRoom = room
             }
+        }
     }
     
     private var scaleFactor: CGFloat {

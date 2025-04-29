@@ -34,23 +34,7 @@ struct FloorplanView: View {
                 }
             }
             
-            if let room = selectedRoom {
-                VStack(alignment: .leading) {
-                    Text(room.name)
-                        .font(.headline)
-                    Text("\(Int(room.width)) × \(Int(room.length)) cm")
-                        .font(.subheadline)
-                    Text(String(format: "%.1f m²", room.area))
-                        .font(.subheadline)
-                }
-                .padding()
-                .background(Color(.systemBackground))
-                .cornerRadius(10)
-                .shadow(radius: 5)
-                .position(x: UIScreen.main.bounds.width / 2, y: 100)
-                .transition(.opacity)
-                .animation(.easeInOut, value: selectedRoom != nil)                
-            }
+            // Info panel removed
         }
         .navigationTitle("Floorplan")
     }

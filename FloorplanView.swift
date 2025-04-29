@@ -77,47 +77,22 @@ struct FloorplanView: View {
     }
     
     private func roomBox(room: Room, position: CGPoint) -> some View {
-        let width = CGFloat(room.width) * scaleFactor
-        let length = CGFloat(room.length) * scaleFactor
-        
-        // Get dimensions for the actual room rectangle (before rotation)
-        let roomWidth = max(width, minRoomSize)
-        let roomHeight = max(length, minRoomSize)
-        
-        return ZStack {
-            // Main room shape
-            Rectangle()
-                .fill(selectedRoom?.id == room.id ? Color.blue.opacity(0.3) : Color.blue.opacity(0.1))
-                .frame(width: roomWidth, height: roomHeight)
-                .overlay(
-                    Rectangle()
-                        .stroke(Color.blue, lineWidth: 2)
-                )
-            
-            // Room name
-            Text(room.name)
-                .font(.caption)
-                .foregroundColor(.primary)
-                .padding(5)
-                .lineLimit(1)
-                .minimumScaleFactor(0.5)
-                .frame(maxWidth: roomWidth - 10)
-        }
-        .rotationEffect(.degrees(Double(room.rotation)))
-        .position(position)
-        .onTapGesture {
-            selectedRoom = room
-        }
-        .onLongPressGesture {
-            // Rotate the room 90 degrees on long press
-            if selectedRoom?.id == room.id {
-                var updatedRoom = room
-                updatedRoom.rotation = (room.rotation + 90) % 360
-                roomStore.updateRoom(updatedRoom)
-            } else {
-                selectedRoom = room
+        DraggableRoomView(
+            room: room,
+            initialPosition: position,
+            isSelected: selectedRoom?.id == room.id,
+            scaleFactor: scaleFactor,
+            minRoomSize: minRoomSize,
+            onSelect: { selected in
+                self.selectedRoom = selected
+            },
+            onRotate: { rotatedRoom in
+                self.roomStore.updateRoom(rotatedRoom)
+            },
+            onMove: { movedRoom in
+                self.roomStore.updateRoom(movedRoom)
             }
-        }
+        )
     }
     
     private var scaleFactor: CGFloat {
@@ -260,5 +235,92 @@ extension FloorplanView {
                 self.roomStore.updateRoom(updatedRoom)
             }
         }
+    }
+}
+
+// MARK: - Draggable Room View
+private struct DraggableRoomView: View {
+    let room: Room
+    // The position provided by the parent layout when the view is created.
+    // During an active drag gesture we apply an offset on top of this value.
+    let initialPosition: CGPoint
+    let isSelected: Bool
+    let scaleFactor: CGFloat
+    let minRoomSize: CGFloat
+    
+    // Callbacks so the child view can communicate user interactions back to the parent.
+    let onSelect: (Room) -> Void
+    let onRotate: (Room) -> Void
+    let onMove: (Room) -> Void
+
+    // Local state used only for the duration of a drag gesture.
+    @State private var dragOffset: CGSize = .zero
+    @State private var isDragging: Bool = false
+
+    var body: some View {
+        // Calculate scaled dimensions while respecting a minimum size so that
+        // very small rooms remain interactive.
+        let width = max(CGFloat(room.width) * scaleFactor, minRoomSize)
+        let height = max(CGFloat(room.length) * scaleFactor, minRoomSize)
+
+        let fillColor = isSelected ? Color.blue.opacity(0.3) : Color.blue.opacity(0.1)
+
+        ZStack {
+            Rectangle()
+                .fill(fillColor)
+                .frame(width: width, height: height)
+                .overlay(
+                    Rectangle()
+                        .stroke(Color.blue, lineWidth: 2)
+                )
+
+            Text(room.name)
+                .font(.caption)
+                .foregroundColor(.primary)
+                .padding(5)
+                .lineLimit(1)
+                .minimumScaleFactor(0.5)
+                .frame(maxWidth: width - 10)
+        }
+        .rotationEffect(.degrees(Double(room.rotation)))
+        // Apply the calculated offset during an active drag gesture so the
+        // rectangle follows the user’s finger in real-time.
+        .position(x: initialPosition.x + dragOffset.width,
+                  y: initialPosition.y + dragOffset.height)
+        // -- Interaction handlers --
+        .onTapGesture {
+            onSelect(room)
+        }
+        .onLongPressGesture {
+            var updatedRoom = room
+            updatedRoom.rotation = (room.rotation + 90) % 360
+            onRotate(updatedRoom)
+            // Also keep this room selected so rotation feedback is obvious.
+            onSelect(updatedRoom)
+        }
+        .gesture(
+            DragGesture()
+                .onChanged { value in
+                    // Update local drag offset so the view follows the drag.
+                    dragOffset = value.translation
+                    if !isDragging {
+                        isDragging = true
+                        // Ensure the dragged room becomes selected when the
+                        // gesture starts.
+                        onSelect(room)
+                    }
+                }
+                .onEnded { value in
+                    // Reset the transient drag offset and commit the move to
+                    // the data model so it persists.
+                    dragOffset = .zero
+                    isDragging = false
+                    var updatedRoom = room
+                    let newPoint = CGPoint(x: initialPosition.x + value.translation.width,
+                                           y: initialPosition.y + value.translation.height)
+                    updatedRoom.position = RoomPosition(point: newPoint)
+                    onMove(updatedRoom)
+                }
+        )
     }
 }

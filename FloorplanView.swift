@@ -63,7 +63,7 @@ struct FloorplanView: View {
             roomBoxes
         }
         .frame(width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height - 150)
-        .background(Color.white)
+        .background(Color(UIColor.systemBackground))
         .cornerRadius(12)
         .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 2)
     }

@@ -1,9 +1,14 @@
 import SwiftUI
+import UniformTypeIdentifiers
 
 struct RoomListView: View {
     @ObservedObject var roomStore: RoomStore
     @State private var showingAddRoom = false
     @State private var showingExportSheet = false
+    @State private var showingImportPicker = false
+    @State private var showingImportAlert = false
+    @State private var showingImportView = false
+    @State private var importAlertMessage = ""
     @State private var newRoomName = ""
     @State private var exportURL: URL?
     
@@ -27,6 +32,22 @@ struct RoomListView: View {
                             Image(systemName: "square.and.arrow.up")
                         }
                         
+                        Menu {
+                            Button(action: {
+                                showingImportPicker = true
+                            }) {
+                                Label("Import from File", systemImage: "doc.badge.plus")
+                            }
+                            
+                            Button(action: {
+                                showingImportView = true
+                            }) {
+                                Label("Paste JSON", systemImage: "clipboard")
+                            }
+                        } label: {
+                            Image(systemName: "square.and.arrow.down")
+                        }
+                        
                         Button(action: {
                             showingAddRoom = true
                         }) {
@@ -43,11 +64,79 @@ struct RoomListView: View {
                     ActivityViewController(activityItems: [exportURL])
                 }
             }
+            .sheet(isPresented: $showingImportPicker) {
+                DocumentPicker(
+                    contentTypes: [UTType.json],
+                    onDocumentsPicked: { urls in
+                        importRooms(from: urls)
+                    }
+                )
+            }
+            .alert(isPresented: $showingImportAlert) {
+                Alert(
+                    title: Text("Import Rooms"),
+                    message: Text(importAlertMessage),
+                    dismissButton: .default(Text("OK"))
+                )
+            }
+            .sheet(isPresented: $showingImportView) {
+                ImportView(roomStore: roomStore, isPresented: $showingImportView)
+            }
         }
     }
     
     func deleteRooms(at offsets: IndexSet) {
         roomStore.deleteRoom(at: offsets)
+    }
+    
+    func importRooms(from urls: [URL]) {
+        guard let url = urls.first else {
+            importAlertMessage = "No file was selected."
+            showingImportAlert = true
+            return
+        }
+        
+        // Start accessing the security-scoped resource
+        let didStartAccessing = url.startAccessingSecurityScopedResource()
+        
+        defer {
+            // Make sure we release the security-scoped resource when done
+            if didStartAccessing {
+                url.stopAccessingSecurityScopedResource()
+            }
+        }
+        
+        do {
+            // Create a bookmark to maintain access to this file
+            let bookmarkData = try url.bookmarkData(options: .minimalBookmark, 
+                                                   includingResourceValuesForKeys: nil, 
+                                                   relativeTo: nil)
+            
+            // Access the file with the bookmark
+            var isStale = false
+            let resolvedURL = try URL(resolvingBookmarkData: bookmarkData, 
+                                     options: .withoutUI, 
+                                     relativeTo: nil, 
+                                     bookmarkDataIsStale: &isStale)
+            
+            // Read data from the file
+            let jsonData = try Data(contentsOf: resolvedURL)
+            
+            // Import the rooms
+            let success = roomStore.importRoomsFromJSON(jsonData)
+            
+            if success {
+                importAlertMessage = "Rooms were successfully imported."
+            } else {
+                importAlertMessage = "Failed to import rooms. The file format may be invalid."
+            }
+            
+            showingImportAlert = true
+        } catch {
+            print("Import error: \(error)")
+            importAlertMessage = "Error reading file: \(error.localizedDescription)"
+            showingImportAlert = true
+        }
     }
     
     func exportRoomsData() {
@@ -87,6 +176,7 @@ struct RoomListView: View {
         }
     }
 }
+
 
 struct RoomRowView: View {
     let room: Room

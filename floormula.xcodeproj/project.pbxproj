@@ -11,6 +11,8 @@
 		001E37542DBE859800CFB28E /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 001E37522DBE859800CFB28E /* LaunchScreen.storyboard */; };
 		00337AA32DC0615900855C12 /* ActivityViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00337AA12DC0615900855C12 /* ActivityViewController.swift */; };
 		00337AA42DC0615900855C12 /* ShareSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00337AA22DC0615900855C12 /* ShareSheet.swift */; };
+		00337AA62DC0798D00855C12 /* DocumentPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00337AA52DC0798D00855C12 /* DocumentPicker.swift */; };
+		00337AA82DC07AA000855C12 /* ImportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00337AA72DC07AA000855C12 /* ImportView.swift */; };
 		005BD4F42DC01C17002A1029 /* LocationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 005BD4F22DC01C17002A1029 /* LocationView.swift */; };
 		005BD4F52DC01C17002A1029 /* SensorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 005BD4F32DC01C17002A1029 /* SensorView.swift */; };
 		005BD4F62DC01C17002A1029 /* ARManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 005BD4EF2DC01C17002A1029 /* ARManager.swift */; };
@@ -31,6 +33,8 @@
 		001E37522DBE859800CFB28E /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
 		00337AA12DC0615900855C12 /* ActivityViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityViewController.swift; sourceTree = "<group>"; };
 		00337AA22DC0615900855C12 /* ShareSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareSheet.swift; sourceTree = "<group>"; };
+		00337AA52DC0798D00855C12 /* DocumentPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DocumentPicker.swift; sourceTree = "<group>"; };
+		00337AA72DC07AA000855C12 /* ImportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImportView.swift; sourceTree = "<group>"; };
 		005BD4EF2DC01C17002A1029 /* ARManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ARManager.swift; sourceTree = "<group>"; };
 		005BD4F02DC01C17002A1029 /* ARView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ARView.swift; sourceTree = "<group>"; };
 		005BD4F12DC01C17002A1029 /* LocationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationManager.swift; sourceTree = "<group>"; };
@@ -78,6 +82,8 @@
 		AA0000000000000000000032 /* floormula */ = {
 			isa = PBXGroup;
 			children = (
+				00337AA72DC07AA000855C12 /* ImportView.swift */,
+				00337AA52DC0798D00855C12 /* DocumentPicker.swift */,
 				00337AA12DC0615900855C12 /* ActivityViewController.swift */,
 				00337AA22DC0615900855C12 /* ShareSheet.swift */,
 				005BD5032DC03C64002A1029 /* FloorplanView.swift */,
@@ -181,6 +187,8 @@
 				005BD5012DC03A56002A1029 /* Room.swift in Sources */,
 				005BD5022DC03A56002A1029 /* RoomListView.swift in Sources */,
 				005BD4FC2DC01DA9002A1029 /* RoomModel.swift in Sources */,
+				00337AA62DC0798D00855C12 /* DocumentPicker.swift in Sources */,
+				00337AA82DC07AA000855C12 /* ImportView.swift in Sources */,
 				005BD4FD2DC01DA9002A1029 /* RoomScanManager.swift in Sources */,
 				005BD5042DC03C64002A1029 /* FloorplanView.swift in Sources */,
 				005BD4FE2DC01DA9002A1029 /* RoomScanView.swift in Sources */,

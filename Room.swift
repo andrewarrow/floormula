@@ -107,4 +107,29 @@ class RoomStore: ObservableObject {
             saveRooms()
         }
     }
+    
+    func importRoomsFromJSON(_ jsonData: Data) -> Bool {
+        do {
+            let importedRooms = try JSONDecoder().decode([Room].self, from: jsonData)
+            
+            // Add only rooms that don't already exist
+            var newRoomsAdded = false
+            for importedRoom in importedRooms {
+                if !rooms.contains(where: { $0.id == importedRoom.id }) {
+                    rooms.append(importedRoom)
+                    newRoomsAdded = true
+                }
+            }
+            
+            if newRoomsAdded {
+                saveRooms()
+            }
+            
+            return true
+        } catch {
+            print("Error importing rooms: \(error)")
+            return false
+        }
+    }
 }
+

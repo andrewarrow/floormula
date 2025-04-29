@@ -96,6 +96,8 @@ struct AddRoomView: View {
 struct RoomDetailView: View {
     let room: Room
     @ObservedObject var roomStore: RoomStore
+    @Environment(\.presentationMode) var presentationMode
+    @State private var showingDeleteAlert = false
     
     var body: some View {
         VStack(spacing: 20) {
@@ -161,22 +163,52 @@ struct RoomDetailView: View {
             
             Spacer()
             
-            NavigationLink(destination: RoomScanView(
-                roomName: room.name,
-                roomStore: roomStore, 
-                isPresented: .constant(false),
-                existingRoom: room
-            )) {
-                Text("Remeasure Room")
-                    .font(.headline)
-                    .frame(maxWidth: .infinity, minHeight: 50)
-                    .background(Color.blue)
-                    .foregroundColor(.white)
-                    .cornerRadius(8)
-                    .padding(.horizontal)
+            VStack(spacing: 16) {
+                NavigationLink(destination: RoomScanView(
+                    roomName: room.name,
+                    roomStore: roomStore, 
+                    isPresented: .constant(false),
+                    existingRoom: room
+                )) {
+                    Text("Remeasure Room")
+                        .font(.headline)
+                        .frame(maxWidth: .infinity, minHeight: 50)
+                        .background(Color.blue)
+                        .foregroundColor(.white)
+                        .cornerRadius(8)
+                }
+                
+                Button(action: {
+                    showingDeleteAlert = true
+                }) {
+                    Text("Delete Room")
+                        .font(.headline)
+                        .frame(maxWidth: .infinity, minHeight: 50)
+                        .background(Color.red)
+                        .foregroundColor(.white)
+                        .cornerRadius(8)
+                }
             }
+            .padding(.horizontal)
         }
         .padding()
         .navigationBarTitleDisplayMode(.inline)
+        .alert(isPresented: $showingDeleteAlert) {
+            Alert(
+                title: Text("Delete Room"),
+                message: Text("Are you sure you want to delete '\(room.name)'? This action cannot be undone."),
+                primaryButton: .destructive(Text("Delete")) {
+                    deleteRoom()
+                },
+                secondaryButton: .cancel()
+            )
+        }
+    }
+    
+    private func deleteRoom() {
+        if let index = roomStore.rooms.firstIndex(where: { $0.id == room.id }) {
+            roomStore.deleteRoom(at: IndexSet(integer: index))
+            presentationMode.wrappedValue.dismiss()
+        }
     }
 }

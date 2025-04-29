@@ -7,6 +7,7 @@ struct FloorplanView: View {
     @State private var dragOffset: CGSize = .zero
     @State private var previousOffset: CGPoint = .zero
     @State private var selectedRoom: Room? = nil
+    @State private var roomPositionsInitialized: Bool = false
     
     private let padding: CGFloat = 20
     private let minRoomSize: CGFloat = 50
@@ -21,73 +22,16 @@ struct FloorplanView: View {
                     emptyState
                 } else {
                     roomLayout
-                        .scaleEffect(scale)
-                        .offset(x: offset.x + dragOffset.width, y: offset.y + dragOffset.height)
-                        .gesture(
-                            DragGesture()
-                                .onChanged { value in
-                                    dragOffset = value.translation
-                                }
-                                .onEnded { value in
-                                    offset = CGPoint(
-                                        x: offset.x + dragOffset.width,
-                                        y: offset.y + dragOffset.height
-                                    )
-                                    dragOffset = .zero
-                                }
-                        )
-                        .gesture(
-                            MagnificationGesture()
-                                .onChanged { value in
-                                    let newScale = value / scale
-                                    if scale * newScale >= 0.5 && scale * newScale <= 3.0 {
-                                        scale = scale * newScale
-                                    }
-                                }
-                        )
                         .onTapGesture {
                             selectedRoom = nil
                         }
                 }
             }
-            
-            VStack {
-                Spacer()
-                
-                HStack {
-                    Button(action: {
-                        if scale > 0.5 {
-                            scale -= 0.1
-                        }
-                    }) {
-                        Image(systemName: "minus.circle.fill")
-                            .font(.title)
-                            .foregroundColor(.blue)
-                    }
-                    
-                    Button(action: {
-                        offset = .zero
-                        scale = 1.0
-                    }) {
-                        Image(systemName: "arrow.counterclockwise.circle.fill")
-                            .font(.title)
-                            .foregroundColor(.blue)
-                    }
-                    
-                    Button(action: {
-                        if scale < 3.0 {
-                            scale += 0.1
-                        }
-                    }) {
-                        Image(systemName: "plus.circle.fill")
-                            .font(.title)
-                            .foregroundColor(.blue)
-                    }
+            .onAppear {
+                if !roomPositionsInitialized {
+                    initializeRoomPositions()
+                    roomPositionsInitialized = true
                 }
-                .padding()
-                .background(Color(.systemBackground).opacity(0.8))
-                .cornerRadius(20)
-                .padding()
             }
             
             if let room = selectedRoom {
@@ -105,7 +49,7 @@ struct FloorplanView: View {
                 .shadow(radius: 5)
                 .position(x: UIScreen.main.bounds.width / 2, y: 100)
                 .transition(.opacity)
-                .animation(.easeInOut, value: selectedRoom != nil)
+                .animation(.easeInOut, value: selectedRoom != nil)                
             }
         }
         .navigationTitle("Floorplan")
@@ -134,11 +78,10 @@ struct FloorplanView: View {
         ZStack {
             roomBoxes
         }
-        .frame(width: calculateLayoutWidth(), height: calculateLayoutHeight())
+        .frame(width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height - 150)
         .background(Color.white)
         .cornerRadius(12)
         .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 2)
-        .padding(20)
     }
     
     private var roomBoxes: some View {
@@ -182,18 +125,22 @@ struct FloorplanView: View {
             return 1.0
         }
         
-        let availableWidth = UIScreen.main.bounds.width - (padding * 2)
-        return availableWidth / (CGFloat(maxRoomDimension) * 1.5)
+        // Use the same scale factor as before, but with full screen dimensions
+        let availableWidth = UIScreen.main.bounds.width - padding
+        let availableHeight = UIScreen.main.bounds.height - 150 - padding
+        let widthScale = availableWidth / CGFloat(maxRoomDimension)
+        let heightScale = availableHeight / CGFloat(maxRoomDimension)
+        
+        // Use the smaller of the two scales to ensure rooms fit within the screen
+        return min(widthScale, heightScale) * 0.8
     }
     
     private func calculateLayoutWidth() -> CGFloat {
-        let maxX = roomStore.rooms.reduce(0) { max($0, CGFloat($1.width)) }
-        return max(CGFloat(maxX) * scaleFactor, UIScreen.main.bounds.width - 40) + padding * 2
+        return UIScreen.main.bounds.width
     }
     
     private func calculateLayoutHeight() -> CGFloat {
-        let maxY = roomStore.rooms.reduce(0) { max($0, CGFloat($1.length)) }
-        return max(CGFloat(maxY) * scaleFactor, UIScreen.main.bounds.width - 40) + padding * 2
+        return UIScreen.main.bounds.height - 150
     }
     
     // Struct to hold room and its position for layout purposes
@@ -208,78 +155,48 @@ struct FloorplanView: View {
         var result: [RoomWithPosition] = []
         var occupiedAreas: [(CGRect, Room)] = []
         
-        // Layout algorithm: Place rooms in a grid, attempting to avoid overlaps
-        let gridSize = ceil(sqrt(Double(sortedRooms.count)))
+        // Shift layout to the left side of the screen
         let layoutWidth = calculateLayoutWidth()
         let layoutHeight = calculateLayoutHeight()
         
-        for room in sortedRooms {
+        // Define a grid with more columns than rows to lay out rooms along the left side
+        let columns = min(3, sortedRooms.count)
+        let rows = ceil(Double(sortedRooms.count) / Double(columns))
+        
+        let cellWidth = layoutWidth / CGFloat(columns + 1) // +1 for padding on the right
+        let cellHeight = layoutHeight / CGFloat(rows)
+        
+        // Starting position offset (shift everything to the left)
+        let xOffset = cellWidth * 0.5
+        
+        for (index, room) in sortedRooms.enumerated() {
             let roomWidth = max(CGFloat(room.width) * scaleFactor, minRoomSize)
             let roomHeight = max(CGFloat(room.length) * scaleFactor, minRoomSize)
             
-            // If the room already has a position, use it
-            if let position = room.position {
-                let point = CGPoint(x: CGFloat(position.x), y: CGFloat(position.y))
-                result.append(RoomWithPosition(room: room, position: point))
-                let rect = CGRect(
-                    x: point.x - roomWidth/2,
-                    y: point.y - roomHeight/2,
-                    width: roomWidth,
-                    height: roomHeight
-                )
-                occupiedAreas.append((rect, room))
-                continue
+            // Calculate row and column for this room
+            let row = index / columns
+            let col = index % columns
+            
+            // Calculate position, keeping rooms on the left side
+            let x = xOffset + (cellWidth * CGFloat(col))
+            let y = (cellHeight * (CGFloat(row) + 0.5))
+            
+            var position = CGPoint(x: x, y: y)
+            
+            // If the room already has a stored position, use that instead
+            if let existingPosition = room.position {
+                position = CGPoint(x: CGFloat(existingPosition.x), y: CGFloat(existingPosition.y))
             }
             
-            // Find a position where this room doesn't overlap with others
-            var bestPosition: CGPoint?
-            var minOverlap = Double.infinity
+            result.append(RoomWithPosition(room: room, position: position))
             
-            // Try positions in a grid pattern
-            for row in 0..<Int(gridSize) {
-                for col in 0..<Int(gridSize) {
-                    let cellWidth = layoutWidth / CGFloat(gridSize)
-                    let cellHeight = layoutHeight / CGFloat(gridSize)
-                    
-                    let x = cellWidth * (CGFloat(col) + 0.5)
-                    let y = cellHeight * (CGFloat(row) + 0.5)
-                    
-                    let proposedRect = CGRect(
-                        x: x - roomWidth/2,
-                        y: y - roomHeight/2,
-                        width: roomWidth,
-                        height: roomHeight
-                    )
-                    
-                    // Calculate total overlap with existing rooms
-                    let totalOverlap = occupiedAreas.reduce(0.0) { sum, occupied in
-                        let overlap = proposedRect.intersection(occupied.0).area
-                        return sum + overlap
-                    }
-                    
-                    if totalOverlap < minOverlap {
-                        minOverlap = totalOverlap
-                        bestPosition = CGPoint(x: x, y: y)
-                    }
-                }
-            }
-            
-            if let position = bestPosition {
-                result.append(RoomWithPosition(room: room, position: position))
-                
-                // Update room position in the store
-                var updatedRoom = room
-                updatedRoom.position = RoomPosition(x: Double(position.x), y: Double(position.y))
-                roomStore.updateRoom(updatedRoom)
-                
-                let rect = CGRect(
-                    x: position.x - roomWidth/2,
-                    y: position.y - roomHeight/2,
-                    width: roomWidth,
-                    height: roomHeight
-                )
-                occupiedAreas.append((rect, room))
-            }
+            let rect = CGRect(
+                x: position.x - roomWidth/2,
+                y: position.y - roomHeight/2,
+                width: roomWidth,
+                height: roomHeight
+            )
+            occupiedAreas.append((rect, room))
         }
         
         return result
@@ -289,5 +206,57 @@ struct FloorplanView: View {
 extension CGRect {
     var area: Double {
         return Double(width * height)
+    }
+}
+
+// MARK: - Room Position Management
+extension FloorplanView {
+    private func initializeRoomPositions() {
+        let roomsWithoutPositions = roomStore.rooms.filter { $0.position == nil }
+        if roomsWithoutPositions.isEmpty {
+            return
+        }
+        
+        let layoutWidth = calculateLayoutWidth()
+        let layoutHeight = calculateLayoutHeight()
+        
+        // Define a grid with more columns than rows to lay out rooms along the left side
+        let columns = min(3, roomStore.rooms.count)
+        let rows = ceil(Double(roomStore.rooms.count) / Double(columns))
+        
+        let cellWidth = layoutWidth / CGFloat(columns + 1) // +1 for padding on the right
+        let cellHeight = layoutHeight / CGFloat(rows)
+        
+        // Starting position offset (shift everything to the left)
+        let xOffset = cellWidth * 0.5
+        
+        var updates: [(Room, RoomPosition)] = []
+        
+        for (index, room) in roomStore.rooms.enumerated() {
+            // Skip rooms that already have positions
+            if room.position != nil {
+                continue
+            }
+            
+            // Calculate row and column for this room
+            let row = index / columns
+            let col = index % columns
+            
+            // Calculate position, keeping rooms on the left side
+            let x = xOffset + (cellWidth * CGFloat(col))
+            let y = (cellHeight * (CGFloat(row) + 0.5))
+            
+            let newPosition = RoomPosition(x: Double(x), y: Double(y))
+            updates.append((room, newPosition))
+        }
+        
+        // Apply all position updates at once outside of the view update cycle
+        DispatchQueue.main.async {
+            for (room, position) in updates {
+                var updatedRoom = room
+                updatedRoom.position = position
+                self.roomStore.updateRoom(updatedRoom)
+            }
+        }
     }
 }

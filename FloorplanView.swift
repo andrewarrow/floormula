@@ -3,354 +3,291 @@ import SwiftUI
 struct FloorplanView: View {
     @ObservedObject var roomStore: RoomStore
     @State private var scale: CGFloat = 1.0
+    @State private var offset: CGPoint = .zero
     @State private var dragOffset: CGSize = .zero
-    @State private var previousDragValue: CGSize = .zero
-    @State private var showingHelp = false
-    @State private var snapToGrid = true
+    @State private var previousOffset: CGPoint = .zero
+    @State private var selectedRoom: Room? = nil
     
-    // Scaling factor to convert room dimensions from cm to points
-    private let baseScaleFactor: CGFloat = 0.4
-    
-    private var scaleFactor: CGFloat {
-        baseScaleFactor * scale
-    }
-    
-    // Canvas size for scrolling
-    private let canvasWidth: CGFloat = 900
-    private let canvasHeight: CGFloat = 900
-    
-    // Grid size for snapping
-    private let gridSize: CGFloat = 50
+    private let padding: CGFloat = 20
+    private let minRoomSize: CGFloat = 50
     
     var body: some View {
         ZStack {
-            ScrollView([.horizontal, .vertical]) {
-                ZStack {
-                    // Background grid
-                    GridBackground(gridSize: gridSize, showGrid: true)
-                        .frame(width: canvasWidth, height: canvasHeight)
-                    
-                    // Room boxes
-                    ForEach(roomStore.rooms) { room in
-                        DraggableRoomBox(
-                            room: room,
-                            scaleFactor: scaleFactor,
-                            position: room.position?.point ?? CGPoint(x: CGFloat(room.id.hashValue % 800) + 200, 
-                                                       y: CGFloat(room.id.hashValue % 600) + 200),
-                            onPositionChanged: { newPosition in
-                                let snappedPosition = snapToGrid ? snapPositionToGrid(newPosition) : newPosition
-                                updateRoomPosition(room: room, newPosition: snappedPosition)
-                            }
-                        )
-                    }
-                }
-                .frame(width: canvasWidth, height: canvasHeight)
-                .scaleEffect(scale)
-            }
-            .simultaneousGesture(
-                MagnificationGesture()
-                    .onChanged { value in
-                        let newScale = min(max(0.5, scale * value), 2.0)
-                        scale = newScale
-                    }
-            )
+            Color(.systemGroupedBackground)
+                .ignoresSafeArea()
             
-            // Controls panel
+            VStack {
+                if roomStore.rooms.isEmpty {
+                    emptyState
+                } else {
+                    roomLayout
+                        .scaleEffect(scale)
+                        .offset(x: offset.x + dragOffset.width, y: offset.y + dragOffset.height)
+                        .gesture(
+                            DragGesture()
+                                .onChanged { value in
+                                    dragOffset = value.translation
+                                }
+                                .onEnded { value in
+                                    offset = CGPoint(
+                                        x: offset.x + dragOffset.width,
+                                        y: offset.y + dragOffset.height
+                                    )
+                                    dragOffset = .zero
+                                }
+                        )
+                        .gesture(
+                            MagnificationGesture()
+                                .onChanged { value in
+                                    let newScale = value / scale
+                                    if scale * newScale >= 0.5 && scale * newScale <= 3.0 {
+                                        scale = scale * newScale
+                                    }
+                                }
+                        )
+                        .onTapGesture {
+                            selectedRoom = nil
+                        }
+                }
+            }
+            
             VStack {
                 Spacer()
                 
                 HStack {
-                    // Help/Info button
                     Button(action: {
-                        showingHelp = true
+                        if scale > 0.5 {
+                            scale -= 0.1
+                        }
                     }) {
-                        Image(systemName: "questionmark.circle.fill")
-                            .font(.system(size: 24))
+                        Image(systemName: "minus.circle.fill")
+                            .font(.title)
                             .foregroundColor(.blue)
-                            .background(Color.white)
-                            .clipShape(Circle())
                     }
-                    .padding(.leading)
                     
-                    // Snap to grid toggle
-                    Toggle(isOn: $snapToGrid) {
-                        Text("Snap to Grid")
-                            .font(.caption)
+                    Button(action: {
+                        offset = .zero
+                        scale = 1.0
+                    }) {
+                        Image(systemName: "arrow.counterclockwise.circle.fill")
+                            .font(.title)
+                            .foregroundColor(.blue)
                     }
-                    .frame(width: 120)
-                    .padding(.horizontal)
                     
-                    Spacer()
-                    
-                    // Zoom controls
-                    HStack(spacing: 12) {
-                        Button(action: {
-                            scale = max(scale - 0.1, 0.5)
-                        }) {
-                            Image(systemName: "minus.circle.fill")
-                                .font(.system(size: 24))
-                                .foregroundColor(.blue)
-                                .background(Color.white)
-                                .clipShape(Circle())
+                    Button(action: {
+                        if scale < 3.0 {
+                            scale += 0.1
                         }
-                        
-                        Text(String(format: "%.1fx", scale))
-                            .font(.caption)
-                            .frame(width: 40)
-                        
-                        Button(action: {
-                            scale = min(scale + 0.1, 2.0)
-                        }) {
-                            Image(systemName: "plus.circle.fill")
-                                .font(.system(size: 24))
-                                .foregroundColor(.blue)
-                                .background(Color.white)
-                                .clipShape(Circle())
-                        }
+                    }) {
+                        Image(systemName: "plus.circle.fill")
+                            .font(.title)
+                            .foregroundColor(.blue)
                     }
-                    .padding(.trailing)
                 }
-                .padding(.vertical, 8)
-                .background(Color.white.opacity(0.9))
-                .cornerRadius(8)
-                .shadow(radius: 2)
-                .padding(.horizontal, 10)
-                .padding(.bottom, 10)
+                .padding()
+                .background(Color(.systemBackground).opacity(0.8))
+                .cornerRadius(20)
+                .padding()
             }
-            .alert(isPresented: $showingHelp) {
-                Alert(
-                    title: Text("Floorplan Help"),
-                    message: Text("• Drag rooms to position them on the floorplan\n• Use pinch gesture or +/- buttons to zoom\n• Toggle 'Snap to Grid' for precise positioning\n• Tap and hold to see room details"),
-                    dismissButton: .default(Text("Got it!"))
-                )
+            
+            if let room = selectedRoom {
+                VStack(alignment: .leading) {
+                    Text(room.name)
+                        .font(.headline)
+                    Text("\(Int(room.width)) × \(Int(room.length)) cm")
+                        .font(.subheadline)
+                    Text(String(format: "%.1f m²", room.area))
+                        .font(.subheadline)
+                }
+                .padding()
+                .background(Color(.systemBackground))
+                .cornerRadius(10)
+                .shadow(radius: 5)
+                .position(x: UIScreen.main.bounds.width / 2, y: 100)
+                .transition(.opacity)
+                .animation(.easeInOut, value: selectedRoom != nil)
             }
         }
         .navigationTitle("Floorplan")
-        .background(Color(.systemGray6))
     }
     
-    private func snapPositionToGrid(_ position: CGPoint) -> CGPoint {
-        let snappedX = round(position.x / gridSize) * gridSize
-        let snappedY = round(position.y / gridSize) * gridSize
-        return CGPoint(x: snappedX, y: snappedY)
-    }
-    
-    private func updateRoomPosition(room: Room, newPosition: CGPoint) {
-        // Find the room in the store
-        if let index = roomStore.rooms.firstIndex(where: { $0.id == room.id }) {
-            // Create updated room
-            var updatedRoom = room
-            updatedRoom.position = RoomPosition(point: newPosition)
+    private var emptyState: some View {
+        VStack(spacing: 20) {
+            Image(systemName: "rectangle.3.group")
+                .font(.system(size: 60))
+                .foregroundColor(.gray)
             
-            // Update in store
-            roomStore.updateRoom(updatedRoom)
+            Text("No Rooms Added")
+                .font(.title2)
+                .fontWeight(.semibold)
+                .foregroundColor(.primary)
+            
+            Text("Add rooms in the Rooms tab to visualize your floorplan")
+                .font(.body)
+                .foregroundColor(.secondary)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal)
         }
     }
-}
-
-struct DraggableRoomBox: View {
-    let room: Room
-    let scaleFactor: CGFloat
-    @State var position: CGPoint
-    let onPositionChanged: (CGPoint) -> Void
-    @State private var isDragging = false
     
-    var body: some View {
-        RoomBox(room: room, scaleFactor: scaleFactor, isSelected: isDragging)
-            .position(position)
-            .gesture(
-                DragGesture()
-                    .onChanged { value in
-                        isDragging = true
-                        position = CGPoint(
-                            x: position.x + value.translation.width / scaleFactor,
-                            y: position.y + value.translation.height / scaleFactor
-                        )
-                        onPositionChanged(position)
-                    }
-                    .onEnded { _ in
-                        isDragging = false
-                    }
-            )
-    }
-}
-
-struct RoomBox: View {
-    let room: Room
-    let scaleFactor: CGFloat
-    var isSelected: Bool = false
-    @State private var showDetails = false
-    
-    var width: CGFloat {
-        max(CGFloat(room.width) * scaleFactor, 40)
+    private var roomLayout: some View {
+        ZStack {
+            roomBoxes
+        }
+        .frame(width: calculateLayoutWidth(), height: calculateLayoutHeight())
+        .background(Color.white)
+        .cornerRadius(12)
+        .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 2)
+        .padding(20)
     }
     
-    var height: CGFloat {
-        max(CGFloat(room.length) * scaleFactor, 40)
+    private var roomBoxes: some View {
+        ZStack {
+            ForEach(calculateRoomPositions()) { roomWithPosition in
+                roomBox(room: roomWithPosition.room, position: roomWithPosition.position)
+            }
+        }
     }
     
-    var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            // Room name header
-            Text(room.name)
-                .font(.caption.bold())
-                .padding(4)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .background(isSelected ? Color.green : Color.blue)
-                .foregroundColor(.white)
-            
-            // Room rectangle
-            ZStack {
+    private func roomBox(room: Room, position: CGPoint) -> some View {
+        let width = CGFloat(room.width) * scaleFactor
+        let length = CGFloat(room.length) * scaleFactor
+        
+        return Rectangle()
+            .fill(selectedRoom?.id == room.id ? Color.blue.opacity(0.3) : Color.blue.opacity(0.1))
+            .frame(width: max(width, minRoomSize), height: max(length, minRoomSize))
+            .overlay(
                 Rectangle()
-                    .stroke(isSelected ? Color.green : Color.blue, lineWidth: isSelected ? 3 : 2)
-                    .background((isSelected ? Color.green : Color.blue).opacity(0.1))
-                    .frame(width: width, height: height)
-                
-                // Room dimensions and name in the center
-                VStack {
-                    Text(room.name)
-                        .font(.caption.bold())
-                        .foregroundColor(.primary)
-                        .opacity(width > 100 ? 1 : 0)
-                        .padding(.bottom, 2)
+                    .stroke(Color.blue, lineWidth: 2)
+            )
+            .overlay(
+                Text(room.name)
+                    .font(.caption)
+                    .foregroundColor(.primary)
+                    .padding(5)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.5)
+                    .frame(maxWidth: max(width, minRoomSize) - 10)
+            )
+            .position(position)
+            .onTapGesture {
+                selectedRoom = room
+            }
+    }
+    
+    private var scaleFactor: CGFloat {
+        // Calculate a scale factor to fit rooms in the view
+        let maxRoomDimension = roomStore.rooms.reduce(0) { max($0, CGFloat(max($1.width, $1.length))) }
+        if maxRoomDimension <= 0 {
+            return 1.0
+        }
+        
+        let availableWidth = UIScreen.main.bounds.width - (padding * 2)
+        return availableWidth / (CGFloat(maxRoomDimension) * 1.5)
+    }
+    
+    private func calculateLayoutWidth() -> CGFloat {
+        let maxX = roomStore.rooms.reduce(0) { max($0, CGFloat($1.width)) }
+        return max(CGFloat(maxX) * scaleFactor, UIScreen.main.bounds.width - 40) + padding * 2
+    }
+    
+    private func calculateLayoutHeight() -> CGFloat {
+        let maxY = roomStore.rooms.reduce(0) { max($0, CGFloat($1.length)) }
+        return max(CGFloat(maxY) * scaleFactor, UIScreen.main.bounds.width - 40) + padding * 2
+    }
+    
+    // Struct to hold room and its position for layout purposes
+    struct RoomWithPosition: Identifiable {
+        let id = UUID()
+        let room: Room
+        let position: CGPoint
+    }
+    
+    private func calculateRoomPositions() -> [RoomWithPosition] {
+        let sortedRooms = roomStore.rooms.sorted { $0.area > $1.area }
+        var result: [RoomWithPosition] = []
+        var occupiedAreas: [(CGRect, Room)] = []
+        
+        // Layout algorithm: Place rooms in a grid, attempting to avoid overlaps
+        let gridSize = ceil(sqrt(Double(sortedRooms.count)))
+        let layoutWidth = calculateLayoutWidth()
+        let layoutHeight = calculateLayoutHeight()
+        
+        for room in sortedRooms {
+            let roomWidth = max(CGFloat(room.width) * scaleFactor, minRoomSize)
+            let roomHeight = max(CGFloat(room.length) * scaleFactor, minRoomSize)
+            
+            // If the room already has a position, use it
+            if let position = room.position {
+                let point = CGPoint(x: CGFloat(position.x), y: CGFloat(position.y))
+                result.append(RoomWithPosition(room: room, position: point))
+                let rect = CGRect(
+                    x: point.x - roomWidth/2,
+                    y: point.y - roomHeight/2,
+                    width: roomWidth,
+                    height: roomHeight
+                )
+                occupiedAreas.append((rect, room))
+                continue
+            }
+            
+            // Find a position where this room doesn't overlap with others
+            var bestPosition: CGPoint?
+            var minOverlap = Double.infinity
+            
+            // Try positions in a grid pattern
+            for row in 0..<Int(gridSize) {
+                for col in 0..<Int(gridSize) {
+                    let cellWidth = layoutWidth / CGFloat(gridSize)
+                    let cellHeight = layoutHeight / CGFloat(gridSize)
                     
-                    Text("\(Int(room.width))×\(Int(room.length))")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
+                    let x = cellWidth * (CGFloat(col) + 0.5)
+                    let y = cellHeight * (CGFloat(row) + 0.5)
                     
-                    Text("\(String(format: "%.1f", room.area)) m²")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                        .opacity(width > 80 ? 1 : 0)
-                }
-                .padding(4)
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                
-                // Info button in the corner
-                if width > 60 && height > 60 {
-                    VStack {
-                        HStack {
-                            Spacer()
-                            Button(action: {
-                                showDetails.toggle()
-                            }) {
-                                Image(systemName: "info.circle")
-                                    .foregroundColor(.blue)
-                                    .padding(4)
-                            }
-                        }
-                        Spacer()
+                    let proposedRect = CGRect(
+                        x: x - roomWidth/2,
+                        y: y - roomHeight/2,
+                        width: roomWidth,
+                        height: roomHeight
+                    )
+                    
+                    // Calculate total overlap with existing rooms
+                    let totalOverlap = occupiedAreas.reduce(0.0) { sum, occupied in
+                        let overlap = proposedRect.intersection(occupied.0).area
+                        return sum + overlap
+                    }
+                    
+                    if totalOverlap < minOverlap {
+                        minOverlap = totalOverlap
+                        bestPosition = CGPoint(x: x, y: y)
                     }
                 }
             }
+            
+            if let position = bestPosition {
+                result.append(RoomWithPosition(room: room, position: position))
+                
+                // Update room position in the store
+                var updatedRoom = room
+                updatedRoom.position = RoomPosition(x: Double(position.x), y: Double(position.y))
+                roomStore.updateRoom(updatedRoom)
+                
+                let rect = CGRect(
+                    x: position.x - roomWidth/2,
+                    y: position.y - roomHeight/2,
+                    width: roomWidth,
+                    height: roomHeight
+                )
+                occupiedAreas.append((rect, room))
+            }
         }
-        .frame(width: width, height: height + 24)
-        .shadow(radius: isSelected ? 4 : 2)
-        .popover(isPresented: $showDetails) {
-            RoomDetailPopover(room: room)
-        }
+        
+        return result
     }
 }
 
-struct RoomDetailPopover: View {
-    let room: Room
-    
-    var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text(room.name)
-                .font(.headline)
-                .padding(.bottom, 5)
-            
-            HStack {
-                Text("Width:")
-                    .foregroundColor(.secondary)
-                Text("\(Int(room.width)) cm")
-                    .fontWeight(.medium)
-            }
-            
-            HStack {
-                Text("Length:")
-                    .foregroundColor(.secondary)
-                Text("\(Int(room.length)) cm")
-                    .fontWeight(.medium)
-            }
-            
-            HStack {
-                Text("Area:")
-                    .foregroundColor(.secondary)
-                Text(String(format: "%.1f m²", room.area))
-                    .fontWeight(.medium)
-            }
-            
-            HStack {
-                Text("Created:")
-                    .foregroundColor(.secondary)
-                Text(room.createdAt, style: .date)
-                    .fontWeight(.medium)
-            }
-        }
-        .padding()
-        .frame(width: 250)
-    }
-}
-
-struct GridBackground: View {
-    let gridSize: CGFloat
-    let showGrid: Bool
-    
-    var body: some View {
-        Canvas { context, size in
-            if showGrid {
-                // Draw vertical lines
-                for x in stride(from: 0, to: size.width, by: gridSize) {
-                    let isMainLine = Int(x) % Int(gridSize * 5) == 0
-                    let path = Path { p in
-                        p.move(to: CGPoint(x: x, y: 0))
-                        p.addLine(to: CGPoint(x: x, y: size.height))
-                    }
-                    context.stroke(
-                        path,
-                        with: .color(isMainLine ? Color.gray.opacity(0.3) : Color.gray.opacity(0.15)),
-                        lineWidth: isMainLine ? 1 : 0.5
-                    )
-                }
-                
-                // Draw horizontal lines
-                for y in stride(from: 0, to: size.height, by: gridSize) {
-                    let isMainLine = Int(y) % Int(gridSize * 5) == 0
-                    let path = Path { p in
-                        p.move(to: CGPoint(x: 0, y: y))
-                        p.addLine(to: CGPoint(x: size.width, y: y))
-                    }
-                    context.stroke(
-                        path,
-                        with: .color(isMainLine ? Color.gray.opacity(0.3) : Color.gray.opacity(0.15)),
-                        lineWidth: isMainLine ? 1 : 0.5
-                    )
-                }
-                
-                // Draw measurement indicators on main grid lines
-                let fontSize: CGFloat = 10
-                for x in stride(from: 0, to: size.width, by: gridSize * 5) {
-                    let meters = Int(x / gridSize)
-                    if meters > 0 {
-                        let text = Text("\(meters)m").font(.system(size: fontSize))
-                        context.draw(text, at: CGPoint(x: x + 2, y: 2))
-                    }
-                }
-                
-                for y in stride(from: 0, to: size.height, by: gridSize * 5) {
-                    let meters = Int(y / gridSize) 
-                    if meters > 0 {
-                        let text = Text("\(meters)m").font(.system(size: fontSize))
-                        context.draw(text, at: CGPoint(x: 2, y: y + 2))
-                    }
-                }
-            } else {
-                // Draw a simple background without grid
-                let path = Path(CGRect(origin: .zero, size: size))
-                context.fill(path, with: .color(Color(.systemGray6)))
-            }
-        }
+extension CGRect {
+    var area: Double {
+        return Double(width * height)
     }
 }

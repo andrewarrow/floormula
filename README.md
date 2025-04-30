@@ -17,3 +17,13 @@ Then you can make a nice floorplan.
 
 All for free and open source.
 
+# libs
+
+```
+ARKit: Enables augmented reality features for iOS apps.
+RealityKit: Creates 3D content and augmented reality experiences.
+CoreLocation: Provides geolocation services including GPS and region monitoring.
+CoreMotion: Processes device movement, orientation, and acceleration data.
+CoreHaptics: Creates customized haptic feedback patterns for tactile experiences.
+simd: Enables high-performance vector and matrix math operations.
+```

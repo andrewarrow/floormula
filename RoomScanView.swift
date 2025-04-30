@@ -43,11 +43,6 @@ struct RoomScanView: View {
                 unsupportedDeviceView
             }
             
-            // Help overlay
-            if showingHelp {
-                helpOverlay
-            }
-            
             // Save confirmation
             if showingSaveConfirmation {
                 saveConfirmationOverlay
@@ -331,21 +326,7 @@ struct RoomScanView: View {
                     .cornerRadius(15)
                 }
                 
-                // Help button
-                Button(action: {
-                    showingHelp = true
-                }) {
-                    VStack {
-                        Image(systemName: "questionmark")
-                            .font(.system(size: 24))
-                        Text("Help")
-                            .font(.caption)
-                    }
-                    .frame(width: 80, height: 60)
-                    .background(Color.blue)
-                    .foregroundColor(.white)
-                    .cornerRadius(15)
-                }
+      
             }
         }
         .padding(.bottom, 30)
@@ -448,67 +429,113 @@ struct RoomScanView: View {
     }
     
     var helpOverlay: some View {
-        ZStack {
-            Color.black.opacity(0.85)
-                .edgesIgnoringSafeArea(.all)
-                .onTapGesture {
-                    showingHelp = false
-                }
-            
-            VStack(spacing: 20) {
-                Text("How to Measure a Room")
-                    .font(.title)
-                    .bold()
-                    .foregroundColor(.white)
+        GeometryReader { geometry in
+            ZStack {
+                Color.black.opacity(0.85)
+                    .edgesIgnoringSafeArea(.all)
+                    .onTapGesture {
+                        showingHelp = false
+                    }
                 
-                VStack(alignment: .leading, spacing: 16) {
-                    Text("Step 1: Measure Width")
-                        .font(.headline)
-                        .foregroundColor(.blue)
-                        .padding(.vertical, 4)
-                    
-                    helpStep(number: 1, text: "Press 'Measure Width' button")
-                    helpStep(number: 2, text: "Place your phone against the first wall")
-                    helpStep(number: 3, text: "Walk to the opposite wall")
-                    helpStep(number: 4, text: "Place your phone against the second wall")
-                    helpStep(number: 5, text: "Press 'Capture Distance' to measure")
-                    
-                    Text("Step 2: Measure Length")
-                        .font(.headline)
-                        .foregroundColor(.green)
-                        .padding(.top, 8)
-                        .padding(.bottom, 4)
-                    
-                    helpStep(number: 6, text: "Press 'Measure Length' button")
-                    helpStep(number: 7, text: "Place your phone against the third wall")
-                    helpStep(number: 8, text: "Walk to the opposite wall")
-                    helpStep(number: 9, text: "Place your phone against the fourth wall")
-                    helpStep(number: 10, text: "Press 'Capture Distance' to measure")
+                ScrollView {
+                    VStack(spacing: 20) {
+                        Text("How to Measure a Room")
+                            .font(.title)
+                            .bold()
+                            .foregroundColor(.white)
+                            .padding(.top)
+                        
+                        // Adaptive layout based on device size
+                        if geometry.size.width > 700 {
+                            // iPad layout - side by side steps
+                            HStack(alignment: .top, spacing: 30) {
+                                // Step 1: Width
+                                VStack(alignment: .leading, spacing: 16) {
+                                    Text("Step 1: Measure Width")
+                                        .font(.headline)
+                                        .foregroundColor(.blue)
+                                        .padding(.vertical, 4)
+                                    
+                                    helpStep(number: 1, text: "Press 'Measure Width' button")
+                                    helpStep(number: 2, text: "Place your phone against the first wall")
+                                    helpStep(number: 3, text: "Walk to the opposite wall")
+                                    helpStep(number: 4, text: "Place your phone against the second wall")
+                                    helpStep(number: 5, text: "Press 'Capture Distance' to measure")
+                                }
+                                .frame(minWidth: 0, maxWidth: .infinity)
+                                
+                                // Step 2: Length
+                                VStack(alignment: .leading, spacing: 16) {
+                                    Text("Step 2: Measure Length")
+                                        .font(.headline)
+                                        .foregroundColor(.green)
+                                        .padding(.vertical, 4)
+                                    
+                                    helpStep(number: 6, text: "Press 'Measure Length' button")
+                                    helpStep(number: 7, text: "Place your phone against the third wall")
+                                    helpStep(number: 8, text: "Walk to the opposite wall")
+                                    helpStep(number: 9, text: "Place your phone against the fourth wall")
+                                    helpStep(number: 10, text: "Press 'Capture Distance' to measure")
+                                }
+                                .frame(minWidth: 0, maxWidth: .infinity)
+                            }
+                        } else {
+                            // iPhone layout - stacked steps
+                            VStack(alignment: .leading, spacing: 16) {
+                                Text("Step 1: Measure Width")
+                                    .font(.headline)
+                                    .foregroundColor(.blue)
+                                    .padding(.vertical, 4)
+                                
+                                helpStep(number: 1, text: "Press 'Measure Width' button")
+                                helpStep(number: 2, text: "Place your phone against the first wall")
+                                helpStep(number: 3, text: "Walk to the opposite wall")
+                                helpStep(number: 4, text: "Place your phone against the second wall")
+                                helpStep(number: 5, text: "Press 'Capture Distance' to measure")
+                                
+                                Text("Step 2: Measure Length")
+                                    .font(.headline)
+                                    .foregroundColor(.green)
+                                    .padding(.top, 8)
+                                    .padding(.bottom, 4)
+                                
+                                helpStep(number: 6, text: "Press 'Measure Length' button")
+                                helpStep(number: 7, text: "Place your phone against the third wall")
+                                helpStep(number: 8, text: "Walk to the opposite wall")
+                                helpStep(number: 9, text: "Place your phone against the fourth wall")
+                                helpStep(number: 10, text: "Press 'Capture Distance' to measure")
+                            }
+                        }
+                        
+                        Text("Tip: For best results, keep your phone flat against the walls and move in a straight line between measurements. You can use the 'Undo Last' button to retry a measurement.")
+                            .font(.footnote)
+                            .foregroundColor(.yellow)
+                            .multilineTextAlignment(.center)
+                            .padding()
+                            .fixedSize(horizontal: false, vertical: true)
+                        
+                        Button(action: {
+                            showingHelp = false
+                        }) {
+                            Text("Got It")
+                                .font(.headline)
+                                .foregroundColor(.white)
+                                .padding()
+                                .frame(width: 200)
+                                .background(Color.blue)
+                                .cornerRadius(10)
+                        }
+                        .padding(.bottom)
+                    }
+                    .padding(30)
+                    .background(Color.gray.opacity(0.8))
+                    .cornerRadius(16)
+                    .padding(.horizontal, geometry.size.width > 700 ? 60 : 20)
+                    .padding(.vertical, 40)
+                    .frame(maxWidth: geometry.size.width > 700 ? min(geometry.size.width * 0.85, 1000) : .infinity)
+                    .fixedSize(horizontal: false, vertical: true)
                 }
-                
-                Text("Tip: For best results, keep your phone flat against the walls and move in a straight line between measurements. You can use the 'Undo Last' button to retry a measurement.")
-                    .font(.callout)
-                    .foregroundColor(.yellow)
-                    .multilineTextAlignment(.center)
-                    .padding()
-                
-                Button(action: {
-                    showingHelp = false
-                }) {
-                    Text("Got It")
-                        .font(.headline)
-                        .foregroundColor(.white)
-                        .padding()
-                        .frame(width: 200)
-                        .background(Color.blue)
-                        .cornerRadius(10)
-                }
-                .padding(.top)
             }
-            .padding(30)
-            .background(Color.gray.opacity(0.8))
-            .cornerRadius(16)
-            .padding(30)
         }
     }
     

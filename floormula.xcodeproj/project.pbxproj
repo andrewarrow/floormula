@@ -8,7 +8,11 @@
 
 /* Begin PBXBuildFile section */
 		001E37532DBE859800CFB28E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 001E37512DBE859800CFB28E /* Assets.xcassets */; };
-		001E37542DBE859800CFB28E /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 001E37522DBE859800CFB28E /* LaunchScreen.storyboard */; };
+		00337AA32DC0615900855C12 /* ActivityViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00337AA12DC0615900855C12 /* ActivityViewController.swift */; };
+		00337AA42DC0615900855C12 /* ShareSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00337AA22DC0615900855C12 /* ShareSheet.swift */; };
+		00337AA62DC0798D00855C12 /* DocumentPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00337AA52DC0798D00855C12 /* DocumentPicker.swift */; };
+		00337AA82DC07AA000855C12 /* ImportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00337AA72DC07AA000855C12 /* ImportView.swift */; };
+		00337AAA2DC07F1C00855C12 /* floormula.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 00337AA92DC07F1C00855C12 /* floormula.storyboard */; };
 		005BD4F42DC01C17002A1029 /* LocationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 005BD4F22DC01C17002A1029 /* LocationView.swift */; };
 		005BD4F52DC01C17002A1029 /* SensorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 005BD4F32DC01C17002A1029 /* SensorView.swift */; };
 		005BD4F62DC01C17002A1029 /* ARManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 005BD4EF2DC01C17002A1029 /* ARManager.swift */; };
@@ -26,7 +30,11 @@
 
 /* Begin PBXFileReference section */
 		001E37512DBE859800CFB28E /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		001E37522DBE859800CFB28E /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
+		00337AA12DC0615900855C12 /* ActivityViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityViewController.swift; sourceTree = "<group>"; };
+		00337AA22DC0615900855C12 /* ShareSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareSheet.swift; sourceTree = "<group>"; };
+		00337AA52DC0798D00855C12 /* DocumentPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DocumentPicker.swift; sourceTree = "<group>"; };
+		00337AA72DC07AA000855C12 /* ImportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImportView.swift; sourceTree = "<group>"; };
+		00337AA92DC07F1C00855C12 /* floormula.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = floormula.storyboard; sourceTree = "<group>"; };
 		005BD4EF2DC01C17002A1029 /* ARManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ARManager.swift; sourceTree = "<group>"; };
 		005BD4F02DC01C17002A1029 /* ARView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ARView.swift; sourceTree = "<group>"; };
 		005BD4F12DC01C17002A1029 /* LocationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationManager.swift; sourceTree = "<group>"; };
@@ -74,6 +82,10 @@
 		AA0000000000000000000032 /* floormula */ = {
 			isa = PBXGroup;
 			children = (
+				00337AA72DC07AA000855C12 /* ImportView.swift */,
+				00337AA52DC0798D00855C12 /* DocumentPicker.swift */,
+				00337AA12DC0615900855C12 /* ActivityViewController.swift */,
+				00337AA22DC0615900855C12 /* ShareSheet.swift */,
 				005BD5032DC03C64002A1029 /* FloorplanView.swift */,
 				005BD4FF2DC03A56002A1029 /* Room.swift */,
 				005BD5002DC03A56002A1029 /* RoomListView.swift */,
@@ -86,10 +98,10 @@
 				005BD4F22DC01C17002A1029 /* LocationView.swift */,
 				005BD4F32DC01C17002A1029 /* SensorView.swift */,
 				001E37512DBE859800CFB28E /* Assets.xcassets */,
-				001E37522DBE859800CFB28E /* LaunchScreen.storyboard */,
 				AA0000000000000000000011 /* floormula.swift */,
 				AA0000000000000000000012 /* ContentView.swift */,
 				AA0000000000000000000013 /* Info.plist */,
+				00337AA92DC07F1C00855C12 /* floormula.storyboard */,
 			);
 			name = floormula;
 			sourceTree = "<group>";
@@ -152,7 +164,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				001E37532DBE859800CFB28E /* Assets.xcassets in Resources */,
-				001E37542DBE859800CFB28E /* LaunchScreen.storyboard in Resources */,
+				00337AAA2DC07F1C00855C12 /* floormula.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -165,6 +177,8 @@
 			files = (
 				005BD4F42DC01C17002A1029 /* LocationView.swift in Sources */,
 				005BD4F52DC01C17002A1029 /* SensorView.swift in Sources */,
+				00337AA32DC0615900855C12 /* ActivityViewController.swift in Sources */,
+				00337AA42DC0615900855C12 /* ShareSheet.swift in Sources */,
 				005BD4F62DC01C17002A1029 /* ARManager.swift in Sources */,
 				005BD4F72DC01C17002A1029 /* ARView.swift in Sources */,
 				005BD4F82DC01C17002A1029 /* LocationManager.swift in Sources */,
@@ -173,6 +187,8 @@
 				005BD5012DC03A56002A1029 /* Room.swift in Sources */,
 				005BD5022DC03A56002A1029 /* RoomListView.swift in Sources */,
 				005BD4FC2DC01DA9002A1029 /* RoomModel.swift in Sources */,
+				00337AA62DC0798D00855C12 /* DocumentPicker.swift in Sources */,
+				00337AA82DC07AA000855C12 /* ImportView.swift in Sources */,
 				005BD4FD2DC01DA9002A1029 /* RoomScanManager.swift in Sources */,
 				005BD5042DC03C64002A1029 /* FloorplanView.swift in Sources */,
 				005BD4FE2DC01DA9002A1029 /* RoomScanView.swift in Sources */,
@@ -304,17 +320,24 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 755R3VBZ84;
 				INFOPLIST_FILE = "$(SRCROOT)/Info.plist";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				MARKETING_VERSION = 1.0.4;
 				PRODUCT_BUNDLE_IDENTIFIER = dev.andrewarrow.floormula;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Debug;
 		};
@@ -324,17 +347,24 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 755R3VBZ84;
 				INFOPLIST_FILE = "$(SRCROOT)/Info.plist";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				MARKETING_VERSION = 1.0.4;
 				PRODUCT_BUNDLE_IDENTIFIER = dev.andrewarrow.floormula;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Release;
 		};

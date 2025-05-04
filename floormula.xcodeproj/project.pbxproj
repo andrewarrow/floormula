@@ -22,10 +22,18 @@
 		005BD4FD2DC01DA9002A1029 /* RoomScanManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 005BD4FA2DC01DA9002A1029 /* RoomScanManager.swift */; };
 		005BD4FE2DC01DA9002A1029 /* RoomScanView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 005BD4FB2DC01DA9002A1029 /* RoomScanView.swift */; };
 		005BD5012DC03A56002A1029 /* Room.swift in Sources */ = {isa = PBXBuildFile; fileRef = 005BD4FF2DC03A56002A1029 /* Room.swift */; };
+		005BD5012DC03A56002A1030 /* Room.swift in Sources */ = {isa = PBXBuildFile; fileRef = 005BD4FF2DC03A56002A1029 /* Room.swift */; };
 		005BD5022DC03A56002A1029 /* RoomListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 005BD5002DC03A56002A1029 /* RoomListView.swift */; };
 		005BD5042DC03C64002A1029 /* FloorplanView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 005BD5032DC03C64002A1029 /* FloorplanView.swift */; };
 		AA0000000000000000000001 /* floormula.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000011 /* floormula.swift */; };
 		AA0000000000000000000002 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0000000000000000000012 /* ContentView.swift */; };
+		AA0000000000000000000003 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 001E37512DBE859800CFB28E /* Assets.xcassets */; };
+		BBBBBBBBBBBBBBBBBBBBBB01 /* floormulaApp_macOS.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBBBBBBBBBBBBBBBBBBBBB11 /* floormulaApp_macOS.swift */; };
+		BBBBBBBBBBBBBBBBBBBBBB02 /* ContentView_macOS.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBBBBBBBBBBBBBBBBBBBBB12 /* ContentView_macOS.swift */; };
+		BBBBBBBBBBBBBBBBBBBBBB03 /* FloorplanView_macOS.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBBBBBBBBBBBBBBBBBBBBB13 /* FloorplanView_macOS.swift */; };
+		BBBBBBBBBBBBBBBBBBBBBB04 /* RoomListView_macOS.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBBBBBBBBBBBBBBBBBBBBB14 /* RoomListView_macOS.swift */; };
+		BBBBBBBBBBBBBBBBBBBBBB05 /* ImportView_macOS.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBBBBBBBBBBBBBBBBBBBBB15 /* ImportView_macOS.swift */; };
+		BBBBBBBBBBBBBBBBBBBBBB06 /* ManualMeasurementView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBBBBBBBBBBBBBBBBBBBBB16 /* ManualMeasurementView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -50,10 +58,25 @@
 		AA0000000000000000000011 /* floormula.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = floormula.swift; sourceTree = "<group>"; };
 		AA0000000000000000000012 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		AA0000000000000000000013 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		BBBBBBBBBBBBBBBBBBBBBB10 /* floormula-macOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "floormula-macOS.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		BBBBBBBBBBBBBBBBBBBBBB11 /* floormulaApp_macOS.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = floormulaApp_macOS.swift; sourceTree = "<group>"; };
+		BBBBBBBBBBBBBBBBBBBBBB12 /* ContentView_macOS.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView_macOS.swift; sourceTree = "<group>"; };
+		BBBBBBBBBBBBBBBBBBBBBB13 /* FloorplanView_macOS.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloorplanView_macOS.swift; sourceTree = "<group>"; };
+		BBBBBBBBBBBBBBBBBBBBBB14 /* RoomListView_macOS.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoomListView_macOS.swift; sourceTree = "<group>"; };
+		BBBBBBBBBBBBBBBBBBBBBB15 /* ImportView_macOS.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImportView_macOS.swift; sourceTree = "<group>"; };
+		BBBBBBBBBBBBBBBBBBBBBB16 /* ManualMeasurementView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ManualMeasurementView.swift; sourceTree = "<group>"; };
+		BBBBBBBBBBBBBBBBBBBBBB17 /* Info_macOS.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info_macOS.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		AA0000000000000000000020 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		BBBBBBBBBBBBBBBBBBBBBB20 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -68,6 +91,9 @@
 			children = (
 				AA0000000000000000000031 /* Products */,
 				AA0000000000000000000032 /* floormula */,
+				BBBBBBBBBBBBBBBBBBBBBB30 /* iOS */,
+				BBBBBBBBBBBBBBBBBBBBBB31 /* macOS */,
+				BBBBBBBBBBBBBBBBBBBBBB32 /* Shared */,
 			);
 			sourceTree = "<group>";
 		};
@@ -75,6 +101,7 @@
 			isa = PBXGroup;
 			children = (
 				AA0000000000000000000010 /* floormula.app */,
+				BBBBBBBBBBBBBBBBBBBBBB10 /* floormula-macOS.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -82,12 +109,21 @@
 		AA0000000000000000000032 /* floormula */ = {
 			isa = PBXGroup;
 			children = (
+				001E37512DBE859800CFB28E /* Assets.xcassets */,
+				AA0000000000000000000013 /* Info.plist */,
+				00337AA92DC07F1C00855C12 /* floormula.storyboard */,
+			);
+			name = floormula;
+			sourceTree = "<group>";
+		};
+		BBBBBBBBBBBBBBBBBBBBBB30 /* iOS */ = {
+			isa = PBXGroup;
+			children = (
 				00337AA72DC07AA000855C12 /* ImportView.swift */,
 				00337AA52DC0798D00855C12 /* DocumentPicker.swift */,
 				00337AA12DC0615900855C12 /* ActivityViewController.swift */,
 				00337AA22DC0615900855C12 /* ShareSheet.swift */,
 				005BD5032DC03C64002A1029 /* FloorplanView.swift */,
-				005BD4FF2DC03A56002A1029 /* Room.swift */,
 				005BD5002DC03A56002A1029 /* RoomListView.swift */,
 				005BD4F92DC01DA9002A1029 /* RoomModel.swift */,
 				005BD4FA2DC01DA9002A1029 /* RoomScanManager.swift */,
@@ -97,13 +133,32 @@
 				005BD4F12DC01C17002A1029 /* LocationManager.swift */,
 				005BD4F22DC01C17002A1029 /* LocationView.swift */,
 				005BD4F32DC01C17002A1029 /* SensorView.swift */,
-				001E37512DBE859800CFB28E /* Assets.xcassets */,
 				AA0000000000000000000011 /* floormula.swift */,
 				AA0000000000000000000012 /* ContentView.swift */,
-				AA0000000000000000000013 /* Info.plist */,
-				00337AA92DC07F1C00855C12 /* floormula.storyboard */,
 			);
-			name = floormula;
+			path = iOS;
+			sourceTree = "<group>";
+		};
+		BBBBBBBBBBBBBBBBBBBBBB31 /* macOS */ = {
+			isa = PBXGroup;
+			children = (
+				BBBBBBBBBBBBBBBBBBBBBB11 /* floormulaApp_macOS.swift */,
+				BBBBBBBBBBBBBBBBBBBBBB12 /* ContentView_macOS.swift */,
+				BBBBBBBBBBBBBBBBBBBBBB13 /* FloorplanView_macOS.swift */,
+				BBBBBBBBBBBBBBBBBBBBBB14 /* RoomListView_macOS.swift */,
+				BBBBBBBBBBBBBBBBBBBBBB15 /* ImportView_macOS.swift */,
+				BBBBBBBBBBBBBBBBBBBBBB16 /* ManualMeasurementView.swift */,
+				BBBBBBBBBBBBBBBBBBBBBB17 /* Info_macOS.plist */,
+			);
+			path = macOS;
+			sourceTree = "<group>";
+		};
+		BBBBBBBBBBBBBBBBBBBBBB32 /* Shared */ = {
+			isa = PBXGroup;
+			children = (
+				005BD4FF2DC03A56002A1029 /* Room.swift */,
+			);
+			path = Shared;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -126,6 +181,23 @@
 			productReference = AA0000000000000000000010 /* floormula.app */;
 			productType = "com.apple.product-type.application";
 		};
+		BBBBBBBBBBBBBBBBBBBBBB40 /* floormula-macOS */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = BBBBBBBBBBBBBBBBBBBBBB41 /* Build configuration list for PBXNativeTarget "floormula-macOS" */;
+			buildPhases = (
+				BBBBBBBBBBBBBBBBBBBBBB20 /* Frameworks */,
+				BBBBBBBBBBBBBBBBBBBBBB42 /* Resources */,
+				BBBBBBBBBBBBBBBBBBBBBB43 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "floormula-macOS";
+			productName = "floormula-macOS";
+			productReference = BBBBBBBBBBBBBBBBBBBBBB10 /* floormula-macOS.app */;
+			productType = "com.apple.product-type.application";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -136,6 +208,9 @@
 				ORGANIZATIONNAME = "";
 				TargetAttributes = {
 					AA0000000000000000000040 = {
+						CreatedOnToolsVersion = 12.0;
+					};
+					BBBBBBBBBBBBBBBBBBBBBB40 = {
 						CreatedOnToolsVersion = 12.0;
 					};
 				};
@@ -154,6 +229,7 @@
 			projectRoot = "";
 			targets = (
 				AA0000000000000000000040 /* floormula */,
+				BBBBBBBBBBBBBBBBBBBBBB40 /* floormula-macOS */,
 			);
 		};
 /* End PBXProject section */
@@ -165,6 +241,14 @@
 			files = (
 				001E37532DBE859800CFB28E /* Assets.xcassets in Resources */,
 				00337AAA2DC07F1C00855C12 /* floormula.storyboard in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		BBBBBBBBBBBBBBBBBBBBBB42 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AA0000000000000000000003 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -192,6 +276,20 @@
 				005BD4FD2DC01DA9002A1029 /* RoomScanManager.swift in Sources */,
 				005BD5042DC03C64002A1029 /* FloorplanView.swift in Sources */,
 				005BD4FE2DC01DA9002A1029 /* RoomScanView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		BBBBBBBBBBBBBBBBBBBBBB43 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				005BD5012DC03A56002A1030 /* Room.swift in Sources */,
+				BBBBBBBBBBBBBBBBBBBBBB01 /* floormulaApp_macOS.swift in Sources */,
+				BBBBBBBBBBBBBBBBBBBBBB02 /* ContentView_macOS.swift in Sources */,
+				BBBBBBBBBBBBBBBBBBBBBB03 /* FloorplanView_macOS.swift in Sources */,
+				BBBBBBBBBBBBBBBBBBBBBB04 /* RoomListView_macOS.swift in Sources */,
+				BBBBBBBBBBBBBBBBBBBBBB05 /* ImportView_macOS.swift in Sources */,
+				BBBBBBBBBBBBBBBBBBBBBB06 /* ManualMeasurementView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -249,7 +347,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -304,7 +402,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
@@ -368,6 +466,60 @@
 			};
 			name = Release;
 		};
+		BBBBBBBBBBBBBBBBBBBBBB62 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "";
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 755R3VBZ84;
+				ENABLE_HARDENED_RUNTIME = YES;
+				INFOPLIST_FILE = "$(SRCROOT)/macOS/Info_macOS.plist";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 12.0;
+				MARKETING_VERSION = 1.0.4;
+				PRODUCT_BUNDLE_IDENTIFIER = "dev.andrewarrow.floormula-mac";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		BBBBBBBBBBBBBBBBBBBBBB63 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = "";
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 755R3VBZ84;
+				ENABLE_HARDENED_RUNTIME = YES;
+				INFOPLIST_FILE = "$(SRCROOT)/macOS/Info_macOS.plist";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 12.0;
+				MARKETING_VERSION = 1.0.4;
+				PRODUCT_BUNDLE_IDENTIFIER = "dev.andrewarrow.floormula-mac";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -385,6 +537,15 @@
 			buildConfigurations = (
 				AA0000000000000000000060 /* Debug */,
 				AA0000000000000000000061 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		BBBBBBBBBBBBBBBBBBBBBB41 /* Build configuration list for PBXNativeTarget "floormula-macOS" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BBBBBBBBBBBBBBBBBBBBBB62 /* Debug */,
+				BBBBBBBBBBBBBBBBBBBBBB63 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

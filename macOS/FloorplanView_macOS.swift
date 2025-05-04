@@ -4,7 +4,8 @@ import AppKit
 struct FloorplanView_macOS: View {
     @ObservedObject var roomStore: RoomStore
     @State private var scale: CGFloat = 1.0
-    @State private var zoomFactor: CGFloat = 1.0
+    // Using AppStorage to persist zoom factor even when view is redrawn
+    @AppStorage("floorplanZoomFactor") private var zoomFactor: Double = 1.0
     @State private var offset: CGPoint = .zero
     @State private var dragOffset: CGSize = .zero
     @State private var previousOffset: CGPoint = .zero
@@ -75,13 +76,13 @@ struct FloorplanView_macOS: View {
             roomBoxes
         }
         .frame(width: canvasWidth, height: canvasHeight)
-        .scaleEffect(zoomFactor)
+        .scaleEffect(CGFloat(zoomFactor))
         .background(Color(.textBackgroundColor))
         .background(KeyEventHandling(onPlus: {
-            zoomFactor += zoomIncrement
+            zoomFactor += Double(zoomIncrement)
         }, onMinus: {
-            if zoomFactor > zoomIncrement {
-                zoomFactor -= zoomIncrement
+            if zoomFactor > Double(zoomIncrement) {
+                zoomFactor -= Double(zoomIncrement)
             }
         }))
     }
@@ -356,6 +357,8 @@ private struct DraggableRoomView: View {
                                            y: initialPosition.y + value.translation.height)
                     updatedRoom.position = RoomPosition(point: newPoint)
                     onMove(updatedRoom)
+                    
+                    // Note: we don't reset zoomFactor here, allowing it to persist
                 }
         )
     }

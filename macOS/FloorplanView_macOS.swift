@@ -12,16 +12,13 @@ struct FloorplanView_macOS: View {
     private let padding: CGFloat = 20
     private let minRoomSize: CGFloat = 50
     
-    // Default canvas size for mac
-    private let canvasWidth: CGFloat = 800
-    private let canvasHeight: CGFloat = 600
+    // Use available space dimensions
+    @State private var canvasWidth: CGFloat = 800
+    @State private var canvasHeight: CGFloat = 600
     
     var body: some View {
-        ZStack {
-            Color(.windowBackgroundColor)
-                .ignoresSafeArea()
-            
-            VStack {
+        GeometryReader { geometry in
+            ZStack {
                 if roomStore.rooms.isEmpty {
                     emptyState
                 } else {
@@ -32,13 +29,23 @@ struct FloorplanView_macOS: View {
                 }
             }
             .onAppear {
+                // Use full available space with no padding
+                canvasWidth = geometry.size.width
+                canvasHeight = geometry.size.height
+                
                 if !roomPositionsInitialized {
                     initializeRoomPositions()
                     roomPositionsInitialized = true
                 }
             }
+            .onChange(of: geometry.size) { newSize in
+                // Update canvas dimensions when window size changes
+                canvasWidth = newSize.width
+                canvasHeight = newSize.height
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .navigationTitle("Floorplan")
         }
-        .navigationTitle("Floorplan")
     }
     
     private var emptyState: some View {
@@ -66,8 +73,6 @@ struct FloorplanView_macOS: View {
         }
         .frame(width: canvasWidth, height: canvasHeight)
         .background(Color(.textBackgroundColor))
-        .cornerRadius(12)
-        .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 2)
     }
     
     private var roomBoxes: some View {
@@ -126,15 +131,12 @@ struct FloorplanView_macOS: View {
         var result: [RoomWithPosition] = []
         var occupiedAreas: [(CGRect, Room)] = []
         
-        // Define a grid with more columns than rows to lay out rooms along the left side
-        let columns = min(3, sortedRooms.count)
+        // Define a grid to lay out rooms more evenly across the canvas
+        let columns = min(4, sortedRooms.count)
         let rows = ceil(Double(sortedRooms.count) / Double(columns))
         
-        let cellWidth = canvasWidth / CGFloat(columns + 1) // +1 for padding on the right
+        let cellWidth = canvasWidth / CGFloat(columns)
         let cellHeight = canvasHeight / CGFloat(rows)
-        
-        // Starting position offset (shift everything to the left)
-        let xOffset = cellWidth * 0.5
         
         for (index, room) in sortedRooms.enumerated() {
             let roomWidth = max(CGFloat(room.width) * scaleFactor, minRoomSize)
@@ -144,8 +146,8 @@ struct FloorplanView_macOS: View {
             let row = index / columns
             let col = index % columns
             
-            // Calculate position, keeping rooms on the left side
-            let x = xOffset + (cellWidth * CGFloat(col))
+            // Calculate position, distributing rooms more evenly
+            let x = (cellWidth * (CGFloat(col) + 0.5))
             let y = (cellHeight * (CGFloat(row) + 0.5))
             
             var position = CGPoint(x: x, y: y)
@@ -175,15 +177,12 @@ struct FloorplanView_macOS: View {
             return
         }
         
-        // Define a grid with more columns than rows to lay out rooms along the left side
-        let columns = min(3, roomStore.rooms.count)
+        // Define a grid to lay out rooms more evenly across the canvas
+        let columns = min(4, roomStore.rooms.count)
         let rows = ceil(Double(roomStore.rooms.count) / Double(columns))
         
-        let cellWidth = canvasWidth / CGFloat(columns + 1) // +1 for padding on the right
+        let cellWidth = canvasWidth / CGFloat(columns)
         let cellHeight = canvasHeight / CGFloat(rows)
-        
-        // Starting position offset (shift everything to the left)
-        let xOffset = cellWidth * 0.5
         
         var updates: [(Room, RoomPosition)] = []
         
@@ -197,8 +196,8 @@ struct FloorplanView_macOS: View {
             let row = index / columns
             let col = index % columns
             
-            // Calculate position, keeping rooms on the left side
-            let x = xOffset + (cellWidth * CGFloat(col))
+            // Calculate position, distributing rooms more evenly
+            let x = (cellWidth * (CGFloat(col) + 0.5))
             let y = (cellHeight * (CGFloat(row) + 0.5))
             
             let newPosition = RoomPosition(x: Double(x), y: Double(y))

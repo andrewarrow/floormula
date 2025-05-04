@@ -1,8 +1,10 @@
 import SwiftUI
+import AppKit
 
 struct FloorplanView_macOS: View {
     @ObservedObject var roomStore: RoomStore
     @State private var scale: CGFloat = 1.0
+    @State private var zoomFactor: CGFloat = 1.0
     @State private var offset: CGPoint = .zero
     @State private var dragOffset: CGSize = .zero
     @State private var previousOffset: CGPoint = .zero
@@ -11,6 +13,7 @@ struct FloorplanView_macOS: View {
     
     private let padding: CGFloat = 20
     private let minRoomSize: CGFloat = 50
+    private let zoomIncrement: CGFloat = 0.1
     
     // Use available space dimensions
     @State private var canvasWidth: CGFloat = 800
@@ -72,7 +75,15 @@ struct FloorplanView_macOS: View {
             roomBoxes
         }
         .frame(width: canvasWidth, height: canvasHeight)
+        .scaleEffect(zoomFactor)
         .background(Color(.textBackgroundColor))
+        .background(KeyEventHandling(onPlus: {
+            zoomFactor += zoomIncrement
+        }, onMinus: {
+            if zoomFactor > zoomIncrement {
+                zoomFactor -= zoomIncrement
+            }
+        }))
     }
     
     private var roomBoxes: some View {
@@ -116,7 +127,11 @@ struct FloorplanView_macOS: View {
         let heightScale = availableHeight / CGFloat(maxRoomDimension)
         
         // Use the smaller of the two scales to ensure rooms fit within the screen
-        return min(widthScale, heightScale) * 0.8
+        // Base scale is calculated by fitting rooms to screen
+        let baseScale = min(widthScale, heightScale) * 0.8
+        
+        // Return the base scale - zoomFactor is applied separately via scaleEffect
+        return baseScale
     }
     
     // Struct to hold room and its position for layout purposes
@@ -210,6 +225,50 @@ struct FloorplanView_macOS: View {
                 var updatedRoom = room
                 updatedRoom.position = position
                 self.roomStore.updateRoom(updatedRoom)
+            }
+        }
+    }
+}
+
+// MARK: - Key Event Handling
+struct KeyEventHandling: NSViewRepresentable {
+    let onPlus: () -> Void
+    let onMinus: () -> Void
+    
+    func makeNSView(context: Context) -> NSView {
+        let view = KeyInterceptorView()
+        view.onPlus = onPlus
+        view.onMinus = onMinus
+        
+        // This is needed to make the view receive key events
+        view.focusRingType = .none
+        DispatchQueue.main.async {
+            view.window?.makeFirstResponder(view)
+        }
+        
+        return view
+    }
+    
+    func updateNSView(_ nsView: NSView, context: Context) {
+        guard let view = nsView as? KeyInterceptorView else { return }
+        view.onPlus = onPlus
+        view.onMinus = onMinus
+    }
+    
+    class KeyInterceptorView: NSView {
+        var onPlus: (() -> Void)?
+        var onMinus: (() -> Void)?
+        
+        override var acceptsFirstResponder: Bool { true }
+        
+        override func keyDown(with event: NSEvent) {
+            let character = event.characters ?? ""
+            if character == "+" || character == "=" {
+                onPlus?()
+            } else if character == "-" || character == "_" {
+                onMinus?()
+            } else {
+                super.keyDown(with: event)
             }
         }
     }
